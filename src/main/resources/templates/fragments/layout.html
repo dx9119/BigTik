@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title th:replace="${title}">BigTik</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <style th:replace="${inlineStyles}"></style>
+</head>
+<body>
+    <div class="container">
+        <div th:replace="~{fragments/language-selector :: language-selector}"></div>
+        
+        <th:block th:replace="${content}"></th:block>
+        
+        <a th:href="@{/home}" class="back-link" th:text="#{profile.backHome}">На главную</a>
+    </div>
+    
+    <script th:src="@{/js/bootstrap.bundle.min.js}"></script>
+</body>
+</html>

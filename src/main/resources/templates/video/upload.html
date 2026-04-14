@@ -1,119 +1,74 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" data-bs-theme="dark">
 <head>
     <title th:text="#{video.upload.title}">Загрузка видео</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        .container { max-width: 800px; margin: 0 auto; }
-        label { display: block; margin-top: 15px; font-weight: bold; }
-        input[type="text"] { width: 100%; padding: 8px; margin-top: 5px; }
-        .file-input-wrapper { margin-top: 20px; padding: 20px; border: 2px dashed #ccc; text-align: center; cursor: pointer; }
-        .file-input-wrapper:hover { border-color: #4CAF50; }
-        .file-input-wrapper input[type="file"] { display: none; }
-        
-        #queue-container { margin-top: 30px; }
-        .queue-item { 
-            background: #f9f9f9; 
-            margin-bottom: 15px; 
-            padding: 15px; 
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-        .queue-item.completed { background: #e8f5e9; }
-        .queue-item.error { background: #ffebee; }
-        .queue-item-info { flex: 1; }
-        .queue-item-name { font-weight: bold; margin-bottom: 5px; }
-        .queue-item-size { font-size: 12px; color: #666; }
-        
-        .progress-wrapper { flex: 2; }
-        .progress-bar-bg { 
-            width: 100%; 
-            height: 20px; 
-            background-color: #e0e0e0; 
-            border-radius: 10px; 
-            overflow: hidden; 
-        }
-        .progress-bar-fill { 
-            height: 100%; 
-            background-color: #4CAF50; 
-            width: 0%; 
-            transition: width 0.2s; 
-        }
-        .progress-bar-bg.error .progress-bar-fill { background-color: #f44336; }
-        .progress-bar-bg.completed .progress-bar-fill { background-color: #4CAF50; }
-        
-        .progress-percent { font-size: 12px; margin-top: 3px; text-align: right; }
-        .queue-item-status { width: 100px; text-align: center; font-size: 12px; }
-        
-        #start-upload-btn { 
-            margin-top: 20px; 
-            padding: 12px 30px; 
-            background-color: #4CAF50; 
-            color: white; 
-            border: none; 
-            cursor: pointer; 
-            font-size: 16px;
-            display: none;
-        }
-        #start-upload-btn:hover { background-color: #45a049; }
-        #start-upload-btn:disabled { background-color: #cccccc; cursor: not-allowed; }
-        
-        .error { color: red; margin-top: 10px; }
-        .success { color: green; margin-top: 10px; }
-        
-        .actions-bar { margin-top: 20px; display: flex; gap: 10px; }
-        .btn { 
-            padding: 10px 20px; 
-            background-color: #2196F3; 
-            color: white; 
-            border: none; 
-            cursor: pointer; 
-        }
-        .btn:hover { background-color: #1976D2; }
-    </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
 </head>
 <body>
+    <div th:replace="~{fragments/header :: header}"></div>
+    
     <div class="container">
         <h1 th:text="#{video.upload.title}">Загрузка видео</h1>
         
-        <label th:text="#{video.title}">Название</label>
-        <input type="text" id="title" placeholder="Title for all videos"/>
-        
-        <label th:text="#{video.tags}">Теги (через запятую)</label>
-        <input type="text" id="tags" placeholder="tag1, tag2, tag3"/>
-        
-        <div class="file-input-wrapper" onclick="document.getElementById('fileInput').click()">
-            <span th:text="#{video.selectFiles}">Выберите файлы (до 50)</span>
-            <input type="file" id="fileInput" accept="video/*" multiple/>
+        <div class="upload-card">
+            <form id="uploadForm" enctype="multipart/form-data">
+                <input type="hidden" id="csrfToken" th:value="${_csrf.token}"/>
+                
+                <div class="form-group">
+                    <label th:text="#{video.title}">Название</label>
+                    <input type="text" class="auth-input" id="title" th:placeholder="#{video.placeholder.title}">
+                </div>
+                
+                <div class="form-group">
+                    <label th:text="#{video.files}">Файлы (до 50)</label>
+                    <div class="file-input-wrapper" onclick="document.getElementById('fileInput').click()">
+                        <span th:text="#{video.selectFiles}">Выберите файлы (до 50)</span>
+                    </div>
+                    <input type="file" id="fileInput" accept="video/*" multiple>
+                </div>
+                
+                <div class="form-group">
+                    <label th:text="#{video.tags}">Теги (через запятую)</label>
+                    <input type="text" class="auth-input" id="tags" th:placeholder="#{video.placeholder.tags}">
+                </div>
+                
+                <div class="upload-actions">
+                    <button type="button" class="btn-upload" id="start-upload-btn" th:text="#{video.startUpload}">Начать загрузку</button>
+                    <button type="button" class="btn-clear" id="clear-btn" onclick="clearQueue()" th:text="#{video.clearQueue}">Очистить</button>
+                </div>
+            </form>
         </div>
         
-        <input type="hidden" id="csrfToken" th:value="${_csrf.token}"/>
-        
-        <div class="actions-bar">
-            <button class="btn" id="start-upload-btn" th:text="#{video.startUpload}">Начать загрузку</button>
-            <button class="btn" id="clear-btn" onclick="clearQueue()" th:text="#{video.clearQueue}">Очистить</button>
+        <div id="progress-container">
+            <div class="upload-progress">
+                <div class="progress-fill"></div>
+            </div>
+            <div class="progress-text" id="progress-text"></div>
+            <div id="current-file"></div>
         </div>
         
-        <div id="message" class="error" style="display: none;"></div>
-        <div id="success-msg" class="success" style="display: none;" th:attr="data-key=${successKey}"></div>
+        <div class="message message-error" id="message"></div>
+        <div class="message message-success" id="success-msg"></div>
         
         <div id="queue-container"></div>
-        
-        <p><a th:href="@{/home}" th:text="#{profile.backHome}">На главную</a></p>
     </div>
     
-    <script>
+    <div th:replace="~{fragments/footer :: footer}"></div>
+    
+    <script th:src="@{/js/bootstrap.bundle.min.js}"></script>
+    <script th:inline="javascript">
         const fileQueue = [];
         let isUploading = false;
         
-        const i18n = {
-            'video.uploaded.1': /*[[#{video.uploaded.1}]]*/ 'Video uploaded',
-            'video.uploaded.2_4': /*[[#{video.uploaded.2_4}]]*/ 'Videos uploaded',
-            'video.uploaded.many': /*[[#{video.uploaded.many}]]*/ 'Videos uploaded',
-            'video.deleted': /*[[#{video.deleted}]]*/ 'Video deleted'
-        };
+        const MSG_MAX_FILES = /*[[#{video.error.maxFiles}]]*/ 'Maximum 50 files';
+        const MSG_ONLY_VIDEO = /*[[#{video.error.onlyVideo}]]*/ 'Only video files';
+        const MSG_CONFIRM_CLEAR = /*[[#{video.confirm.clear}]]*/ 'Clear all files?';
+        const MSG_ERROR_UPLOAD = /*[[#{video.error.upload}]]*/ 'Error uploading';
+        const MSG_ERROR_NETWORK = /*[[#{video.error.network}]]*/ 'Network error';
+        const MSG_ERROR_FAILED = /*[[#{video.error.failed}]]*/ 'Upload failed';
+        const MSG_UPLOADED_SUCCESS = /*[[#{video.uploaded.success}]]*/ 'Uploaded successfully';
         
         function formatSize(bytes) {
             if (bytes === 0) return '0 B';
@@ -127,13 +82,13 @@
             const files = Array.from(e.target.files);
             
             if (fileQueue.length + files.length > 50) {
-                showError('Maximum 50 files allowed');
+                showError(MSG_MAX_FILES.replace('{0}', 50));
                 return;
             }
             
             files.forEach(file => {
                 if (!file.type.startsWith('video/')) {
-                    showError('Only video files allowed: ' + file.name);
+                    showError(MSG_ONLY_VIDEO.replace('{0}', file.name));
                     return;
                 }
                 
@@ -142,7 +97,8 @@
                     file: file,
                     name: file.name,
                     size: file.size,
-                    status: 'pending'
+                    status: 'pending',
+                    progress: 0
                 };
                 fileQueue.push(fileInfo);
             });
@@ -162,20 +118,22 @@
                 if (item.status === 'completed') div.classList.add('completed');
                 if (item.status === 'error') div.classList.add('error');
                 
+                let statusText = '';
+                if (item.status === 'completed') statusText = '✓';
+                else if (item.status === 'error') statusText = '✗';
+                
                 div.innerHTML = `
-                    <div class="queue-item-info">
+                    <div class="queue-info">
                         <div class="queue-item-name">${index + 1}. ${item.name}</div>
                         <div class="queue-item-size">${formatSize(item.size)}</div>
                     </div>
-                    <div class="progress-wrapper">
-                        <div class="progress-bar-bg ${item.status}" id="progress-${item.id}">
-                            <div class="progress-bar-fill" style="width: ${item.progress || 0}%"></div>
+                    <div class="queue-progress">
+                        <div class="queue-progress-bar" id="progress-${item.id}">
+                            <div class="queue-progress-fill" style="width: ${item.progress || 0}%;"></div>
                         </div>
-                        <div class="progress-percent" id="percent-${item.id}">${item.progress ? item.progress + '%' : ''}</div>
+                        <div class="queue-progress-text" id="percent-${item.id}">${item.progress ? item.progress + '%' : ''}</div>
                     </div>
-                    <div class="queue-item-status" id="status-${item.id}">
-                        ${item.status === 'completed' ? '✓ Done' : item.status === 'error' ? '✗ Error' : ''}
-                    </div>
+                    <div class="queue-status">${statusText}</div>
                 `;
                 container.appendChild(div);
             });
@@ -184,12 +142,12 @@
         function updateButtons() {
             const pendingCount = fileQueue.filter(f => f.status === 'pending').length;
             document.getElementById('start-upload-btn').style.display = 
-                pendingCount > 0 && !isUploading ? 'block' : 'none';
+                pendingCount > 0 && !isUploading ? 'inline-flex' : 'none';
         }
         
         function clearQueue() {
             const pendingCount = fileQueue.filter(f => f.status === 'pending').length;
-            if (pendingCount === 0 || confirm('Clear all pending files?')) {
+            if (pendingCount === 0 || confirm(MSG_CONFIRM_CLEAR)) {
                 fileQueue.length = 0;
                 renderQueue();
                 updateButtons();
@@ -220,7 +178,7 @@
                 formData.append('_csrf', csrfToken);
                 
                 try {
-                    await uploadFile(formData, csrfToken, (progress) => {
+                    await uploadFile(formData, (progress) => {
                         item.progress = Math.round(progress);
                         updateProgressBar(item.id, progress);
                     });
@@ -230,7 +188,7 @@
                 } catch (error) {
                     item.status = 'error';
                     item.progress = 0;
-                    showError('Error uploading ' + item.name + ': ' + error.message);
+                    showError(MSG_ERROR_UPLOAD.replace('{0}', item.name).replace('{1}', error.message));
                 }
                 
                 renderQueue();
@@ -241,13 +199,8 @@
             
             const uploadedCount = fileQueue.filter(f => f.status === 'completed').length;
             if (uploadedCount > 0) {
-                const msgEl = document.getElementById('success-msg');
-                const msgKey = msgEl.getAttribute('data-key');
-                if (msgKey && typeof i18n !== 'undefined') {
-                    showSuccess(i18n[msgKey] || ('Uploaded ' + uploadedCount + ' video(s)'));
-                } else {
-                    showSuccess('Uploaded ' + uploadedCount + ' video(s) successfully');
-                }
+                const msg = MSG_UPLOADED_SUCCESS.replace('{0}', uploadedCount);
+                showSuccess(msg);
             }
             
             document.getElementById('title').value = '';
@@ -256,14 +209,14 @@
         
         function updateProgressBar(id, percent) {
             const bar = document.getElementById('progress-' + id);
-            const fill = bar.querySelector('.progress-bar-fill');
+            const fill = bar ? bar.querySelector('.queue-progress-fill') : null;
             const percentEl = document.getElementById('percent-' + id);
             
             if (fill) fill.style.width = percent + '%';
             if (percentEl) percentEl.textContent = percent + '%';
         }
         
-        function uploadFile(formData, csrfToken, onProgress) {
+        function uploadFile(formData, onProgress) {
             return new Promise((resolve, reject) => {
                 const xhr = new XMLHttpRequest();
                 
@@ -277,12 +230,12 @@
                     if (xhr.status >= 200 && xhr.status < 300) {
                         resolve(xhr.response);
                     } else {
-                        reject(new Error(xhr.statusText || 'Upload failed'));
+                        reject(new Error(xhr.statusText || MSG_ERROR_FAILED));
                     }
                 });
                 
                 xhr.addEventListener('error', function() {
-                    reject(new Error('Network error'));
+                    reject(new Error(MSG_ERROR_NETWORK));
                 });
                 
                 xhr.open('POST', '/video/upload');

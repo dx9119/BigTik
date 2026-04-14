@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+    <footer th:fragment="footer" class="site-footer">
+        <div class="footer-content">
+            <span th:text="#{app.copyright}">&copy; 2026 BigTik</span>
+            <nav th:replace="~{fragments/language-selector :: language-selector}"></nav>
+        </div>
+    </footer>
+</body>
+</html>

@@ -2,18 +2,8 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
     <div th:fragment="language-selector" class="language-selector">
-        <select name="lang" onchange="changeLanguage(this.value)">
-            <option value="ru" th:selected="${#locale.language == 'ru'}" th:text="#{language.ru}">Русский</option>
-            <option value="en" th:selected="${#locale.language == 'en'}" th:text="#{language.en}">Английский</option>
-        </select>
-        <script th:inline="javascript">
-            function changeLanguage(lang) {
-                var currentPath = window.location.pathname;
-                var query = window.location.search;
-                var redirect = encodeURIComponent(currentPath + query);
-                window.location.href = '/lang?lang=' + lang + '&redirect=' + redirect;
-            }
-        </script>
+        <a th:if="${#locale.language != 'ru'}" th:href="@{/home(lang=ru)}" class="lang-link" th:text="#{language.ru}">Русский</a>
+        <a th:if="${#locale.language != 'en'}" th:href="@{/home(lang=en)}" class="lang-link" th:text="#{language.en}">English</a>
     </div>
 </body>
 </html>

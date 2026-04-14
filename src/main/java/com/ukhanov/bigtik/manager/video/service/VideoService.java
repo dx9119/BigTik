@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -22,6 +23,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 @Service
@@ -180,7 +182,7 @@ public class VideoService {
         return videoRepository.findById(videoId)
                 .orElseThrow(() -> new IllegalArgumentException("Video not found"));
     }
-    
+
 
     public Page<Video> getAllVideosPaged(Pageable pageable) {
         return videoRepository.findAllByOrderByUploadedAtDesc(pageable);
@@ -194,5 +196,21 @@ public class VideoService {
         } else {
             return "video.uploaded.many";
         }
+    }
+    
+    public Page<Video> searchVideos(String title, LocalDateTime dateFrom, LocalDateTime dateTo, Pageable pageable) {
+        return videoRepository.searchVideos(title, dateFrom, dateTo, pageable);
+    }
+
+    public Video getNextVideo(LocalDateTime afterAt) {
+        return videoRepository.findNextVideos(afterAt, PageRequest.of(0, 1)).stream()
+                .findFirst()
+                .orElse(null);
+    }
+
+    public Video getPreviousVideo(LocalDateTime beforeAt) {
+        return videoRepository.findPreviousVideos(beforeAt, PageRequest.of(0, 1)).stream()
+                .findFirst()
+                .orElse(null);
     }
 }

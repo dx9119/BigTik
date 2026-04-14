@@ -8,12 +8,14 @@ import org.springframework.stereotype.Controller;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Controller
@@ -48,8 +50,19 @@ public class VideoController {
     @GetMapping("/video/list")
     public String listPage(@RequestParam(defaultValue = "0") int page,
                         @RequestParam(defaultValue = "10") int size,
+                        @RequestParam(required = false) String searchTitle,
+                        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime dateFrom,
+                        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime dateTo,
                         Model model, Authentication authentication) {
-        Page<Video> videosPage = videoService.getAllVideosPaged(PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "uploadedAt")));
+        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "uploadedAt"));
+        Page<Video> videosPage;
+        
+        if (searchTitle != null || dateFrom != null || dateTo != null) {
+            videosPage = videoService.searchVideos(searchTitle, dateFrom, dateTo, pageRequest);
+        } else {
+            videosPage = videoService.getAllVideosPaged(pageRequest);
+        }
+        
         model.addAttribute("videos", videosPage.getContent());
         model.addAttribute("currentPage", page);
         model.addAttribute("totalPages", videosPage.getTotalPages());
@@ -57,6 +70,9 @@ public class VideoController {
         model.addAttribute("currentUsername", authentication.getName());
         model.addAttribute("isAdmin", authentication.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN")));
+        model.addAttribute("searchTitle", searchTitle);
+        model.addAttribute("dateFrom", dateFrom);
+        model.addAttribute("dateTo", dateTo);
         return "video/list";
     }
 
