@@ -1,6 +1,6 @@
-package com.ukhanov.bigtik.controller;
+package com.ukhanov.bigtik.core.controller;
 
-import com.ukhanov.bigtik.service.AuthService;
+import com.ukhanov.bigtik.core.service.AuthService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;

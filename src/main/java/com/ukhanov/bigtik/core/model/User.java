@@ -1,4 +1,4 @@
-package com.ukhanov.bigtik.model;
+package com.ukhanov.bigtik.core.model;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;

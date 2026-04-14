@@ -1,6 +1,6 @@
-package com.ukhanov.bigtik.filter;
+package com.ukhanov.bigtik.core.filter;
 
-import com.ukhanov.bigtik.service.IpAddressService;
+import com.ukhanov.bigtik.core.service.IpAddressService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -48,10 +48,17 @@ public class MDCLoggingFilter extends OncePerRequestFilter {
 
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getPrincipal())) {
-                if (auth.getPrincipal() instanceof org.springframework.security.core.userdetails.User userDetails) {
-                    MDC.put(USER_NAME, userDetails.getUsername());
+                String userName = null;
+                if (auth.getPrincipal() instanceof com.ukhanov.bigtik.core.security.CustomUserDetails customUserDetails) {
+                    userName = customUserDetails.getUsername();
                 } else {
-                    MDC.put(USER_NAME, auth.getName());
+                    userName = auth.getName();
+                }
+                
+                if (userName != null) {
+                    MDC.put(USER_NAME, userName);
+                } else {
+                    MDC.put(USER_NAME, "unknown");
                 }
                 
                 if (auth.getDetails() instanceof org.springframework.security.web.authentication.WebAuthenticationDetails details) {

@@ -1,4 +1,4 @@
-package com.ukhanov.bigtik.config;
+package com.ukhanov.bigtik.core.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

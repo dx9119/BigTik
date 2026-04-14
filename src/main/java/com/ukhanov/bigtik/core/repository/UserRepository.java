@@ -1,6 +1,6 @@
-package com.ukhanov.bigtik.repository;
+package com.ukhanov.bigtik.core.repository;
 
-import com.ukhanov.bigtik.model.User;
+import com.ukhanov.bigtik.core.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

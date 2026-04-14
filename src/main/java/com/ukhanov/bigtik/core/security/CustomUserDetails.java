@@ -1,6 +1,6 @@
-package com.ukhanov.bigtik.security;
+package com.ukhanov.bigtik.core.security;
 
-import com.ukhanov.bigtik.model.User;
+import com.ukhanov.bigtik.core.model.User;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 

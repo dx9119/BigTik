@@ -1,4 +1,4 @@
-package com.ukhanov.bigtik.service;
+package com.ukhanov.bigtik.core.service;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.stereotype.Service;

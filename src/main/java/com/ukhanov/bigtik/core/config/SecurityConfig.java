@@ -1,7 +1,7 @@
-package com.ukhanov.bigtik.config;
+package com.ukhanov.bigtik.core.config;
 
-import com.ukhanov.bigtik.filter.MDCLoggingFilter;
-import com.ukhanov.bigtik.service.IpAddressService;
+import com.ukhanov.bigtik.core.filter.MDCLoggingFilter;
+import com.ukhanov.bigtik.core.service.IpAddressService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -27,6 +27,9 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/auth/**", "/login", "/register", "/lang", "/error").permitAll()
                 .requestMatchers("/admin/**").hasRole("ADMIN")
+                .requestMatchers("/video/upload/**").hasAnyRole("ADMIN", "CREATOR")
+                .requestMatchers("/video/*/delete").hasAnyRole("ADMIN", "CREATOR")
+                .requestMatchers("/video/list").authenticated()
                 .anyRequest().authenticated()
             )
             .formLogin(form -> form

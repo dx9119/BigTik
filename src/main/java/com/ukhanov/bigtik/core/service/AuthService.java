@@ -1,8 +1,10 @@
-package com.ukhanov.bigtik.service;
+package com.ukhanov.bigtik.core.service;
 
-import com.ukhanov.bigtik.model.Role;
-import com.ukhanov.bigtik.model.User;
-import com.ukhanov.bigtik.repository.UserRepository;
+import com.ukhanov.bigtik.core.model.Role;
+import com.ukhanov.bigtik.core.model.User;
+import com.ukhanov.bigtik.core.repository.UserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -12,6 +14,8 @@ import java.util.Locale;
 
 @Service
 public class AuthService {
+
+    private static final Logger logger = LoggerFactory.getLogger(AuthService.class);
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -30,6 +34,8 @@ public class AuthService {
             throw new IllegalArgumentException(message);
         }
         User user = new User(username, passwordEncoder.encode(password), Role.USER);
-        return userRepository.save(user);
+        User saved = userRepository.save(user);
+        logger.info("Registered new user: {}", username);
+        return saved;
     }
 }

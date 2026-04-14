@@ -1,4 +1,4 @@
-package com.ukhanov.bigtik.model;
+package com.ukhanov.bigtik.core.model;
 
 public enum Role {
     ADMIN,

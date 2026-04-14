@@ -1,8 +1,8 @@
-package com.ukhanov.bigtik.service;
+package com.ukhanov.bigtik.core.service;
 
-import com.ukhanov.bigtik.model.User;
-import com.ukhanov.bigtik.repository.UserRepository;
-import com.ukhanov.bigtik.security.CustomUserDetails;
+import com.ukhanov.bigtik.core.model.User;
+import com.ukhanov.bigtik.core.repository.UserRepository;
+import com.ukhanov.bigtik.core.security.CustomUserDetails;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;

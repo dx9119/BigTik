@@ -1,6 +1,6 @@
-package com.ukhanov.bigtik.controller;
+package com.ukhanov.bigtik.core.controller;
 
-import com.ukhanov.bigtik.security.CustomUserDetails;
+import com.ukhanov.bigtik.core.security.CustomUserDetails;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;

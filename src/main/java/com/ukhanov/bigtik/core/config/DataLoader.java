@@ -1,8 +1,8 @@
-package com.ukhanov.bigtik.config;
+package com.ukhanov.bigtik.core.config;
 
-import com.ukhanov.bigtik.model.Role;
-import com.ukhanov.bigtik.model.User;
-import com.ukhanov.bigtik.repository.UserRepository;
+import com.ukhanov.bigtik.core.model.Role;
+import com.ukhanov.bigtik.core.model.User;
+import com.ukhanov.bigtik.core.repository.UserRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
