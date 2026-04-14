@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <title th:text="#{profile.title}">Профиль</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        table { border-collapse: collapse; width: 100%; max-width: 800px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #4CAF50; color: white; }
+        tr:nth-child(even) { background-color: #f2f2f2; }
+        h1 { color: #333; }
+        .logout { margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div th:replace="~{fragments/language-selector :: language-selector}"></div>
+    <h1 th:text="#{profile.title}">Профиль</h1>
+    
+    <h2 th:text="#{profile.account}">Информация об аккаунте</h2>
+    <table>
+        <tr>
+            <th th:text="#{profile.field}">Поле</th>
+            <th th:text="#{profile.value}">Значение</th>
+        </tr>
+        <tr>
+            <td th:text="#{profile.username}">Имя пользователя</td>
+            <td th:text="${username}">-</td>
+        </tr>
+        <tr>
+            <td th:text="#{profile.userId}">ID пользователя</td>
+            <td th:text="${userId}">-</td>
+        </tr>
+    </table>
+    
+    <h2 th:text="#{profile.roles}">Роли и права</h2>
+    <table>
+        <tr>
+            <th th:text="#{profile.role}">Роль</th>
+        </tr>
+        <tr th:each="authority : ${authorities}">
+            <td th:text="${authority.authority}">-</td>
+        </tr>
+    </table>
+    
+    <h2 th:text="#{profile.authDetails}">Информация об аутентификации</h2>
+    <table>
+        <tr>
+            <th th:text="#{profile.field}">Поле</th>
+            <th th:text="#{profile.value}">Значение</th>
+        </tr>
+        <tr>
+            <td th:text="#{profile.authenticated}">Аутентифицирован</td>
+            <td th:text="${isAuthenticated}">-</td>
+        </tr>
+        <tr>
+            <td th:text="#{profile.sessionId}">ID сессии</td>
+            <td th:text="${sessionId}">-</td>
+        </tr>
+        <tr>
+            <td th:text="#{profile.sessionCreated}">Сессия создана</td>
+            <td th:text="${sessionCreated}">-</td>
+        </tr>
+        <tr>
+            <td th:text="#{profile.sessionAccessed}">Последний доступ</td>
+            <td th:text="${sessionLastAccessed}">-</td>
+        </tr>
+    </table>
+    
+    <div class="logout">
+        <form th:action="@{/logout}" method="post">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+            <button type="submit" th:text="#{home.logout}">Выйти</button>
+        </form>
+    </div>
+    
+    <p><a th:href="@{/home}" th:text="#{profile.backHome}">На главную</a></p>
+</body>
+</html>

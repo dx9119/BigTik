@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+    <div th:fragment="language-selector" class="language-selector">
+        <select name="lang" onchange="window.location.href = '/lang?lang=' + this.value + '&redirect=' + window.location.pathname;">
+            <option value="ru" th:selected="${#locale.language == 'ru'}" th:text="#{language.ru}">Русский</option>
+            <option value="en" th:selected="${#locale.language == 'en'}" th:text="#{language.en}">Английский</option>
+        </select>
+    </div>
+</body>
+</html>

@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <title th:text="#{home.title}">Главная</title>
+</head>
+<body>
+    <div th:replace="~{fragments/language-selector :: language-selector}"></div>
+    <h1><span th:text="#{home.welcome}">Добро пожаловать</span>, <span th:text="${username}">User</span>!</h1>
+    <p th:text="#{home.logged}">Вы вошли в систему</p>
+    <form th:action="@{/logout}" method="post">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+        <button type="submit" th:text="#{home.logout}">Выйти</button>
+    </form>
+    <p><a th:href="@{/profile}" th:text="#{profile.title}">Профиль</a></p>
+</body>
+</html>
