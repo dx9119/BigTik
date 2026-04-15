@@ -12,8 +12,6 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.ui.Model;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -31,101 +29,117 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(Exception.class)
-    public ModelAndView handleException(Exception ex, Model model, HttpServletRequest request) {
+    public ModelAndView handleException(Exception ex, HttpServletRequest request) {
         String errorId = UUID.randomUUID().toString().substring(0, 8).toUpperCase();
         String clientIp = ipAddressService.getClientIpAddress(request);
-        
-        logger.error("Error [{}] - IP: {}, URI: {}, Message: {}", 
+
+        logger.error("Error [{}] - IP: {}, URI: {}, Message: {}",
                 errorId,
-                clientIp, 
-                request.getRequestURI(), 
+                clientIp,
+                request.getRequestURI(),
                 ex.getMessage(), ex);
-        
-        model.addAttribute("errorId", errorId);
-        model.addAttribute("errorTime", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-        model.addAttribute("errorIp", clientIp);
-        
-        return new ModelAndView("error");
+
+        Integer statusCode = (Integer) request.getAttribute("jakarta.servlet.error.status_code");
+
+        ModelAndView mav = new ModelAndView("error");
+        mav.addObject("errorId", errorId);
+        mav.addObject("errorTime", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        mav.addObject("errorIp", clientIp);
+        if (statusCode != null) {
+            mav.addObject("httpStatus", statusCode);
+        }
+        return mav;
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
-    public ModelAndView handleIllegalArgument(IllegalArgumentException ex, Model model, HttpServletRequest request) {
+    public ModelAndView handleIllegalArgument(IllegalArgumentException ex, HttpServletRequest request) {
         String errorId = UUID.randomUUID().toString().substring(0, 8).toUpperCase();
         String clientIp = ipAddressService.getClientIpAddress(request);
-        
-        logger.warn("Validation error [{}] - IP: {}, URI: {}, Message: {}", 
+
+        logger.warn("Validation error [{}] - IP: {}, URI: {}, Message: {}",
                 errorId,
-                clientIp, 
-                request.getRequestURI(), 
+                clientIp,
+                request.getRequestURI(),
                 ex.getMessage());
-        
-        model.addAttribute("errorId", errorId);
-        model.addAttribute("errorTime", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-        model.addAttribute("errorIp", clientIp);
-        
-        return new ModelAndView("error");
+
+        ModelAndView mav = new ModelAndView("error");
+        mav.addObject("errorId", errorId);
+        mav.addObject("errorTime", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        mav.addObject("errorIp", clientIp);
+        return mav;
     }
 
     @ExceptionHandler(MaxUploadSizeExceededException.class)
-    public ModelAndView handleMaxUploadSizeExceeded(MaxUploadSizeExceededException ex, Model model, HttpServletRequest request) {
+    public ModelAndView handleMaxUploadSizeExceeded(MaxUploadSizeExceededException ex, HttpServletRequest request) {
         String errorId = UUID.randomUUID().toString().substring(0, 8).toUpperCase();
         String clientIp = ipAddressService.getClientIpAddress(request);
-        
-        logger.warn("File upload size exceeded [{}] - IP: {}, URI: {}, Message: {}", 
+
+        logger.warn("File upload size exceeded [{}] - IP: {}, URI: {}, Message: {}",
                 errorId,
-                clientIp, 
-                request.getRequestURI(), 
+                clientIp,
+                request.getRequestURI(),
                 ex.getMessage());
-        
-        model.addAttribute("errorId", errorId);
-        model.addAttribute("errorTime", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-        model.addAttribute("errorIp", clientIp);
-        
-        return new ModelAndView("error");
+
+        ModelAndView mav = new ModelAndView("error");
+        mav.addObject("errorId", errorId);
+        mav.addObject("errorTime", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        mav.addObject("errorIp", clientIp);
+        return mav;
     }
 
     @ExceptionHandler(AccessDeniedException.class)
     public ModelAndView handleAccessDeniedException(AccessDeniedException ex, HttpServletRequest request) {
         String errorId = UUID.randomUUID().toString().substring(0, 8).toUpperCase();
-        logger.warn("Access denied [{}] - IP: {}, URI: {}, Message: {}", 
+        String clientIp = ipAddressService.getClientIpAddress(request);
+
+        logger.warn("Access denied [{}] - IP: {}, URI: {}, Message: {}",
                 errorId,
-                ipAddressService.getClientIpAddress(request), 
-                request.getRequestURI(), 
+                clientIp,
+                request.getRequestURI(),
                 ex.getMessage());
-        
-        return new ModelAndView("redirect:/error?accessdenied");
+
+        request.setAttribute("errorTime", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        request.setAttribute("errorIp", clientIp);
+
+        return new ModelAndView("forward:/error/access-denied");
     }
 
     @ExceptionHandler(AuthenticationException.class)
     public ModelAndView handleAuthenticationException(AuthenticationException ex, HttpServletRequest request) {
         String errorId = UUID.randomUUID().toString().substring(0, 8).toUpperCase();
-        logger.warn("Authentication error [{}] - IP: {}, URI: {}, Message: {}", 
+        logger.warn("Authentication error [{}] - IP: {}, URI: {}, Message: {}",
                 errorId,
-                ipAddressService.getClientIpAddress(request), 
-                request.getRequestURI(), 
+                ipAddressService.getClientIpAddress(request),
+                request.getRequestURI(),
                 ex.getMessage());
-        
+
         return new ModelAndView("redirect:/login?error");
     }
 
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ModelAndView handleDataIntegrityViolation(DataIntegrityViolationException ex, HttpServletRequest request) {
         String errorId = UUID.randomUUID().toString().substring(0, 8).toUpperCase();
-        logger.error("Data integrity violation [{}] - IP: {}, URI: {}, Message: {}", 
+        String clientIp = ipAddressService.getClientIpAddress(request);
+
+        logger.error("Data integrity violation [{}] - IP: {}, URI: {}, Message: {}",
                 errorId,
-                ipAddressService.getClientIpAddress(request), 
-                request.getRequestURI(), 
+                clientIp,
+                request.getRequestURI(),
                 ex.getMessage(), ex);
-        
-        return new ModelAndView("error");
+
+        ModelAndView mav = new ModelAndView("error");
+        mav.addObject("errorId", errorId);
+        mav.addObject("errorTime", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        mav.addObject("errorIp", clientIp);
+        return mav;
     }
 
     @ExceptionHandler(BadCredentialsException.class)
     public ModelAndView handleBadCredentialsException(BadCredentialsException ex, HttpServletRequest request) {
-        logger.warn("Bad credentials - IP: {}, Message: {}", 
-                ipAddressService.getClientIpAddress(request), 
+        logger.warn("Bad credentials - IP: {}, Message: {}",
+                ipAddressService.getClientIpAddress(request),
                 ex.getMessage());
-        
+
         return new ModelAndView("redirect:/login?error");
     }
 }

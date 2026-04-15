@@ -10,46 +10,78 @@
     <div th:replace="~{fragments/header :: header}"></div>
     
     <div class="container">
-        <h1 th:text="#{profile.title}">Профиль</h1>
+        <h1 class="mb-3" th:text="#{profile.title}">Профиль</h1>
         
-        <div class="profile-card">
-            <h2 class="profile-section-title" th:text="#{profile.account}">Информация об аккаунте</h2>
-            
-            <div class="profile-row">
-                <span class="profile-label" th:text="#{profile.username}">Имя пользователя</span>
-                <span class="profile-value" th:text="${user.username}">-</span>
-            </div>
-            
-            <div class="profile-row">
-                <span class="profile-label" th:text="#{profile.userId}">ID пользователя</span>
-                <span class="profile-value" th:text="${user.id}">-</span>
-            </div>
-            
-            <div class="profile-row">
-                <span class="profile-label" th:text="#{profile.roles}">Роли и права</span>
-                <div class="profile-tags">
-                    <span th:each="role : ${user.roles}" class="profile-tag" th:text="${role}">-</span>
+        <div class="alert alert-danger" role="alert" th:if="${error}" th:text="${error}"></div>
+        <div class="alert alert-success" role="alert" th:if="${success}" th:text="${success}"></div>
+        
+        <div class="card bg-dark border-secondary mb-3">
+            <div class="card-body">
+                <h5 class="card-title mb-3" th:text="#{profile.account}">Информация об аккаунте</h5>
+                
+                <div class="d-flex justify-content-between py-2 border-bottom border-secondary">
+                    <span class="text-secondary" th:text="#{profile.username}">Имя пользователя</span>
+                    <span th:text="${user.username}">-</span>
+                </div>
+                
+                <div class="d-flex justify-content-between py-2 border-bottom border-secondary">
+                    <span class="text-secondary" th:text="#{profile.userId}">ID пользователя</span>
+                    <span th:text="${user.id}">-</span>
+                </div>
+                
+                <div class="d-flex justify-content-between py-2">
+                    <span class="text-secondary" th:text="#{profile.roles}">Роли и права</span>
+                    <div>
+                        <span th:each="role : ${user.roles}" class="badge bg-info me-1" th:text="${role}">-</span>
+                    </div>
                 </div>
             </div>
         </div>
         
-        <div class="profile-card">
-            <h2 class="profile-section-title" th:text="#{profile.authDetails}">Информация об аутентификации</h2>
-            
-            <div class="profile-row">
-                <span class="profile-label" th:text="#{profile.authenticated}">Аутентифицирован</span>
-                <span class="profile-value">
-                    <span th:if="${authDetailsAuthenticated}" class="status-ok">✓</span>
-                    <span th:unless="${authDetailsAuthenticated}" class="status-error">✗</span>
-                </span>
-            </div>
-            
-            <div class="profile-row">
-                <span class="profile-label" th:text="#{profile.sessionId}">ID сессии</span>
-                <span class="profile-value profile-session" th:text="${authDetailsSessionId}">-</span>
+        <div class="card bg-dark border-secondary mb-3">
+            <div class="card-body">
+                <h5 class="card-title mb-3">Смена пароля</h5>
+                
+                <form th:action="@{/profile/password}" method="post">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Текущий пароль</label>
+                        <input type="password" class="form-control" name="currentPassword" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Новый пароль</label>
+                        <input type="password" class="form-control" name="newPassword" minlength="4" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Подтвердите пароль</label>
+                        <input type="password" class="form-control" name="confirmPassword" minlength="4" required>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-outline-light w-100">Изменить пароль</button>
+                </form>
             </div>
         </div>
         
+        <div class="card bg-dark border-secondary mb-3">
+            <div class="card-body">
+                <h5 class="card-title mb-3" th:text="#{profile.authDetails}">Информация об аутентификации</h5>
+                
+                <div class="d-flex justify-content-between py-2 border-bottom border-secondary">
+                    <span class="text-secondary" th:text="#{profile.authenticated}">Аутентифицирован</span>
+                    <span>
+                        <span th:if="${authDetailsAuthenticated}" class="text-success">✓</span>
+                        <span th:unless="${authDetailsAuthenticated}" class="text-danger">✗</span>
+                    </span>
+                </div>
+                
+                <div class="d-flex justify-content-between py-2">
+                    <span class="text-secondary" th:text="#{profile.sessionId}">ID сессии</span>
+                    <small class="text-muted" th:text="${authDetailsSessionId}">-</small>
+                </div>
+            </div>
         </div>
     
     <div th:replace="~{fragments/footer :: footer}"></div>

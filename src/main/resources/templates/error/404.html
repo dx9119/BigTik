@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" data-bs-theme="dark">
 <head>
-    <title th:text="#{error.title}">Ошибка</title>
+    <title th:text="#{error.notFound.title}">Страница не найдена</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" th:href="@{/css/styles.css}">
@@ -11,16 +11,12 @@
 
     <div class="container">
         <div class="error-card">
-            <h1 class="error-title" th:text="#{error.title}">Ошибка</h1>
+            <h1 class="error-title" th:text="#{error.notFound.title}">Страница не найдена</h1>
+            <p class="error-message" th:text="#{error.notFound.message}">Запрашиваемая страница не существует.</p>
 
             <div class="error-row" th:if="${httpStatus}">
                 <span class="error-label">HTTP статус</span>
                 <span class="error-value" th:text="${httpStatus}">404</span>
-            </div>
-
-            <div class="error-row" th:if="${errorId}">
-                <span class="error-label" th:text="#{error.id}">Номер ошибки</span>
-                <span class="error-value" th:text="${errorId}">-</span>
             </div>
 
             <div class="error-row">

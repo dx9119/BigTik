@@ -50,8 +50,8 @@ public class VideoService {
             throw new IllegalArgumentException("No files selected");
         }
 
-        if (files.size() > 50) {
-            throw new IllegalArgumentException("Maximum 50 files allowed");
+        if (files.size() > 1000) {
+            throw new IllegalArgumentException("Maximum 1000 files allowed");
         }
 
         User uploader = userRepository.findByUsername(username)
@@ -213,4 +213,16 @@ public class VideoService {
                 .findFirst()
                 .orElse(null);
     }
+
+    public Video getRandomVideo() {
+        List<Long> ids = videoRepository.findAllIds();
+        if (ids.isEmpty()) return null;
+
+        int randomIndex = (int) (Math.random() * ids.size());
+        Long randomId = ids.get(randomIndex);
+
+        return videoRepository.findById(randomId).orElse(null);
+    }
+
+
 }

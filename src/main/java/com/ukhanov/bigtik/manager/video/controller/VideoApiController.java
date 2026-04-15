@@ -79,4 +79,15 @@ public class VideoApiController {
             return ResponseEntity.notFound().build();
         }
     }
+
+    @GetMapping("/random")
+    public ResponseEntity<?> getRandomVideo() {
+        Video video = videoService.getRandomVideo();
+        if (video == null) {
+            return ResponseEntity.ok(Map.of("error", "No videos available"));
+        }
+        Video next = videoService.getNextVideo(video.getUploadedAt());
+        Video prev = videoService.getPreviousVideo(video.getUploadedAt());
+        return ResponseEntity.ok(buildVideoMap(video, next != null, prev != null));
+    }
 }

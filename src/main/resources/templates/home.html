@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" data-bs-theme="dark">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" data-bs-theme="dark">
 <head>
     <title th:text="#{home.title}">Главная</title>
     <meta charset="UTF-8">
@@ -33,6 +33,10 @@
             <a th:href="@{/video/list}" class="menu-item">
                 <span class="menu-icon">🎬</span>
                 <span class="menu-text" th:text="#{video.list.title}">Видео</span>
+            </a>
+            <a th:href="@{/admin/users}" class="menu-item" th:if="${isAdmin}">
+                <span class="menu-icon">⚙️</span>
+                <span class="menu-text" th:text="#{admin.panel}">Админ-панель</span>
             </a>
         </div>
         

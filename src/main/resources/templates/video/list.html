@@ -10,20 +10,26 @@
     <div th:replace="~{fragments/header :: header}"></div>
     
     <div class="container">
-        <h1 th:text="#{video.list.title}">Видео</h1>
+        <h1 class="mb-3" th:text="#{video.list.title}">Видео</h1>
         
-        <div class="message message-error" th:if="${error}" th:text="${error}"></div>
-        <div class="message message-success" th:if="${successKey}" th:text="#{${successKey}}"></div>
+        <div class="alert alert-danger" role="alert" th:if="${error}" th:text="${error}"></div>
+        <div class="alert alert-success" role="alert" th:if="${successKey}" th:text="#{${successKey}}"></div>
         
-        <form th:action="@{/video/list}" th:method="get" class="search-form">
-            <div class="search-row">
-                <input type="text" name="searchTitle" class="auth-input" th:placeholder="#{video.search.title}" th:value="${searchTitle}">
-                <input type="datetime-local" name="dateFrom" class="auth-input" th:value="${dateFrom}">
-                <input type="datetime-local" name="dateTo" class="auth-input" th:value="${dateTo}">
-            </div>
-            <div class="search-actions">
-                <button type="submit" class="btn-search" th:text="#{video.search.btn}">Поиск</button>
-                <a th:href="@{/video/list}" class="btn-clear-search" th:text="#{video.search.clear}">Очистить</a>
+        <form th:action="@{/video/list}" th:method="get" class="mb-3">
+            <div class="row g-2">
+                <div class="col-12">
+                    <input type="text" name="searchTitle" class="form-control" th:placeholder="#{video.search.title}" th:value="${searchTitle}">
+                </div>
+                <div class="col-6">
+                    <input type="datetime-local" name="dateFrom" class="form-control" th:value="${dateFrom}">
+                </div>
+                <div class="col-6">
+                    <input type="datetime-local" name="dateTo" class="form-control" th:value="${dateTo}">
+                </div>
+                <div class="col-12 d-flex gap-2">
+                    <button type="submit" class="btn btn-outline-light flex-grow-1" th:text="#{video.search.btn}">Поиск</button>
+                    <a th:href="@{/video/list}" class="btn btn-outline-secondary" th:text="#{video.search.clear}">Очистить</a>
+                </div>
             </div>
         </form>
         
@@ -35,6 +41,8 @@
                 </div>
                 
                 <div class="video-card-body">
+                    <video class="video-player" controls th:src="@{|/video/play/${video.id}|}"></video>
+                    
                     <div class="video-tags" th:if="${not #sets.isEmpty(video.tags)}">
                         <span th:each="tag : ${video.tags}" class="video-tag" th:text="${tag}">tag</span>
                     </div>

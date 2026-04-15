@@ -2,55 +2,93 @@ package com.ukhanov.bigtik.manager.video.controller;
 
 import com.ukhanov.bigtik.manager.video.model.Video;
 import com.ukhanov.bigtik.manager.video.service.VideoService;
-import com.ukhanov.bigtik.core.model.User;
-import com.ukhanov.bigtik.core.repository.UserRepository;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
+import java.io.OutputStream;
+import java.io.RandomAccessFile;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.Principal;
 
 @Controller
 public class VideoStreamController {
 
+    private static final int BUFFER_SIZE = 8192;
+
     private final VideoService videoService;
-    private final UserRepository userRepository;
 
-    @Value("${video.upload.path}")
-    private String uploadPath;
-
-    public VideoStreamController(VideoService videoService, UserRepository userRepository) {
+    public VideoStreamController(VideoService videoService) {
         this.videoService = videoService;
-        this.userRepository = userRepository;
     }
 
     @GetMapping("/video/play/{id}")
-    @ResponseBody
-    public Resource streamVideo(@PathVariable Long id,
-                               @RequestHeader(value = "Range", required = false) String range,
-                               HttpServletResponse response) throws MalformedURLException, IOException {
+    public void streamVideo(@PathVariable Long id,
+                            HttpServletRequest request,
+                            HttpServletResponse response) throws IOException {
         Video video = videoService.getVideoById(id);
         Path videoPath = Paths.get(video.getFilePath());
-        Resource resource = new UrlResource(videoPath.toUri());
-        
-        String contentType = "video/mp4";
-        response.setContentType(contentType);
-        response.setContentLengthLong(video.getFileSize());
-        response.setHeader("Content-Disposition", "inline; filename=\"" + video.getTitle() + "\"");
-        response.setHeader("Accept-Ranges", "bytes");
-        
-        return resource;
+
+        long fileLength = video.getFileSize();
+        String mimeType = resolveMimeType(video.getFilePath());
+
+        try (RandomAccessFile randomAccessFile = new RandomAccessFile(videoPath.toFile(), "r")) {
+            long start = 0;
+            long end = fileLength - 1;
+
+            String rangeHeader = request.getHeader("Range");
+            if (rangeHeader != null && rangeHeader.startsWith("bytes=")) {
+                String[] parts = rangeHeader.substring(6).split("-");
+                start = Long.parseLong(parts[0]);
+                if (parts.length > 1 && !parts[1].isEmpty()) {
+                    end = Long.parseLong(parts[1]);
+                }
+            }
+
+            long contentLength = end - start + 1;
+
+            if (rangeHeader != null && rangeHeader.startsWith("bytes=")) {
+                response.setStatus(HttpServletResponse.SC_PARTIAL_CONTENT);
+                response.setHeader("Content-Range", "bytes " + start + "-" + end + "/" + fileLength);
+                response.setHeader("Accept-Ranges", "bytes");
+            } else {
+                response.setStatus(HttpServletResponse.SC_OK);
+                response.setHeader("Accept-Ranges", "bytes");
+            }
+
+            response.setContentType(mimeType);
+            response.setContentLengthLong(contentLength);
+            response.setHeader("Content-Disposition", "inline; filename=\"" + video.getTitle() + "\"");
+
+            randomAccessFile.seek(start);
+            try (OutputStream out = response.getOutputStream()) {
+                byte[] buffer = new byte[BUFFER_SIZE];
+                long remaining = contentLength;
+
+                while (remaining > 0) {
+                    int bytesToRead = (int) Math.min(buffer.length, remaining);
+                    int bytesRead = randomAccessFile.read(buffer, 0, bytesToRead);
+                    if (bytesRead == -1) {
+                        break;
+                    }
+                    out.write(buffer, 0, bytesRead);
+                    remaining -= bytesRead;
+                }
+                out.flush();
+            }
+        }
+    }
+
+    private String resolveMimeType(String filePath) {
+        String lower = filePath.toLowerCase();
+        if (lower.endsWith(".mp4")) return "video/mp4";
+        if (lower.endsWith(".webm")) return "video/webm";
+        if (lower.endsWith(".ogg")) return "video/ogg";
+        if (lower.endsWith(".avi")) return "video/x-msvideo";
+        if (lower.endsWith(".mkv")) return "video/x-matroska";
+        return "application/octet-stream";
     }
 }

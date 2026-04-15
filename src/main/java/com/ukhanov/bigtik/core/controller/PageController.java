@@ -40,6 +40,8 @@ public class PageController {
     @GetMapping("/home")
     public String home(org.springframework.security.core.Authentication authentication, Model model) {
         model.addAttribute("username", authentication.getName());
+        model.addAttribute("isAdmin", authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN")));
         return "home";
     }
 }

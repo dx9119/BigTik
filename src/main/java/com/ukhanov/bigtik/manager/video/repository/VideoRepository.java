@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface VideoRepository extends JpaRepository<Video, Long> {
@@ -31,4 +32,12 @@ public interface VideoRepository extends JpaRepository<Video, Long> {
 
     @Query("SELECT v FROM Video v WHERE v.uploadedAt > :uploadedAt ORDER BY v.uploadedAt ASC")
     List<Video> findPreviousVideos(@Param("uploadedAt") LocalDateTime uploadedAt, Pageable pageable);
+
+    Optional<Video> findById(Long id);
+
+    @Query("SELECT v.id FROM Video v")
+    List<Long> findAllIds();
+
+
+
 }

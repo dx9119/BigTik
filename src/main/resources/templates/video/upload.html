@@ -10,18 +10,18 @@
     <div th:replace="~{fragments/header :: header}"></div>
     
     <div class="container">
-        <h1 th:text="#{video.upload.title}">Загрузка видео</h1>
+        <h1 class="mb-3" th:text="#{video.upload.title}">Загрузка видео</h1>
         
-        <div class="upload-card">
+        <div class="upload-card mb-3">
             <form id="uploadForm" enctype="multipart/form-data">
                 <input type="hidden" id="csrfToken" th:value="${_csrf.token}"/>
                 
-                <div class="form-group">
+                <div class="mb-3">
                     <label th:text="#{video.title}">Название</label>
-                    <input type="text" class="auth-input" id="title" th:placeholder="#{video.placeholder.title}">
+                    <input type="text" class="form-control" id="title" th:placeholder="#{video.placeholder.title}">
                 </div>
                 
-                <div class="form-group">
+                <div class="mb-3">
                     <label th:text="#{video.files}">Файлы (до 50)</label>
                     <div class="file-input-wrapper" onclick="document.getElementById('fileInput').click()">
                         <span th:text="#{video.selectFiles}">Выберите файлы (до 50)</span>
@@ -29,14 +29,13 @@
                     <input type="file" id="fileInput" accept="video/*" multiple>
                 </div>
                 
-                <div class="form-group">
+                <div class="mb-3">
                     <label th:text="#{video.tags}">Теги (через запятую)</label>
-                    <input type="text" class="auth-input" id="tags" th:placeholder="#{video.placeholder.tags}">
+                    <input type="text" class="form-control" id="tags" th:placeholder="#{video.placeholder.tags}">
                 </div>
                 
-                <div class="upload-actions">
-                    <button type="button" class="btn-upload" id="start-upload-btn" th:text="#{video.startUpload}">Начать загрузку</button>
-                    <button type="button" class="btn-clear" id="clear-btn" onclick="clearQueue()" th:text="#{video.clearQueue}">Очистить</button>
+                <div class="d-grid">
+                    <button type="button" class="btn btn-outline-light" id="start-upload-btn" th:text="#{video.startUpload}">Начать загрузку</button>
                 </div>
             </form>
         </div>
@@ -141,8 +140,9 @@
         
         function updateButtons() {
             const pendingCount = fileQueue.filter(f => f.status === 'pending').length;
-            document.getElementById('start-upload-btn').style.display = 
-                pendingCount > 0 && !isUploading ? 'inline-flex' : 'none';
+            const btn = document.getElementById('start-upload-btn');
+            btn.disabled = isUploading || pendingCount === 0;
+            btn.style.opacity = isUploading || pendingCount === 0 ? '0.5' : '1';
         }
         
         function clearQueue() {
@@ -247,6 +247,9 @@
             const el = document.getElementById('message');
             el.textContent = msg;
             el.style.display = 'block';
+            setTimeout(() => {
+                el.style.display = 'none';
+            }, 5000);
         }
         
         function hideMessage() {
@@ -257,6 +260,9 @@
             const el = document.getElementById('success-msg');
             el.textContent = msg;
             el.style.display = 'block';
+            setTimeout(() => {
+                el.style.display = 'none';
+            }, 3000);
         }
         
         function hideSuccess() {

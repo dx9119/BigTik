@@ -31,7 +31,8 @@ body {
 .container {
     max-width: 600px;
     margin: 0 auto;
-    padding: 20px;
+    padding: 80px 20px 20px;
+    min-height: 100vh;
 }
 
 h1 {
@@ -283,23 +284,40 @@ button.secondary:hover,
 .video-card-header {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-start;
     margin-bottom: 12px;
+    gap: 8px;
 }
 
 .video-title {
     font-weight: 600;
     font-size: 16px;
     color: var(--text-primary);
+    word-break: break-word;
 }
 
 .video-date {
     font-size: 12px;
     color: var(--text-secondary);
+    white-space: nowrap;
 }
 
 .video-card-body {
     margin-bottom: 12px;
+}
+
+.video-card-body .video-player {
+    width: 100%;
+    max-height: 300px;
+    background: #000;
+    border-radius: 8px;
+    margin-bottom: 12px;
+}
+
+@media (max-width: 576px) {
+    .video-card-body .video-player {
+        max-height: 180px;
+    }
 }
 
 .video-tags {
@@ -894,6 +912,13 @@ button.secondary:hover,
     margin-bottom: 20px;
 }
 
+.error-message {
+    color: var(--text-primary);
+    font-size: 15px;
+    margin-bottom: 20px;
+    line-height: 1.6;
+}
+
 .error-row {
     display: flex;
     justify-content: space-between;
@@ -1047,4 +1072,283 @@ body {
 
 .container {
     flex: 1;
+}
+
+/* Admin user management */
+.user-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.user-card {
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 16px;
+    transition: border-color 0.2s, transform 0.1s;
+}
+
+.user-card:hover {
+    border-color: var(--accent-cyan);
+    transform: translateY(-2px);
+}
+
+.user-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.user-info {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+}
+
+.user-username {
+    font-weight: 600;
+    font-size: 16px;
+    color: var(--text-primary);
+}
+
+.user-id {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.badge {
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.badge-active {
+    background-color: rgba(52, 211, 153, 0.15);
+    color: var(--success);
+    border: 1px solid var(--success);
+}
+
+.badge-blocked {
+    background-color: rgba(248, 113, 113, 0.15);
+    color: var(--error);
+    border: 1px solid var(--error);
+}
+
+.user-roles {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 12px;
+}
+
+.user-role-tag {
+    padding: 4px 10px;
+    background-color: var(--bg-tertiary);
+    border-radius: 4px;
+    font-size: 12px;
+    color: var(--accent-cyan);
+}
+
+.user-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+}
+
+.role-form {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.role-select {
+    padding: 6px 10px;
+    background-color: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    color: var(--text-primary);
+    font-size: 13px;
+    cursor: pointer;
+    outline: none;
+}
+
+.role-select:focus {
+    border-color: var(--accent-cyan);
+}
+
+.btn-role {
+    padding: 6px 14px;
+    background-color: var(--accent-pink);
+    border: none;
+    border-radius: 6px;
+    color: var(--text-primary);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: filter 0.2s, transform 0.1s;
+}
+
+.btn-role:hover {
+    filter: brightness(1.15);
+}
+
+.btn-role:active {
+    transform: scale(0.98);
+}
+
+.btn-block {
+    padding: 8px 16px;
+    background-color: transparent;
+    border: 1px solid var(--error);
+    border-radius: 6px;
+    color: var(--error);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.btn-block:hover {
+    background-color: var(--error);
+    color: var(--text-primary);
+}
+
+.btn-block:disabled {
+    border-color: var(--bg-tertiary);
+    color: var(--text-secondary);
+    cursor: not-allowed;
+    background-color: transparent;
+}
+
+.btn-unblock {
+    padding: 8px 16px;
+    background-color: transparent;
+    border: 1px solid var(--success);
+    border-radius: 6px;
+    color: var(--success);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.btn-unblock:hover {
+    background-color: var(--success);
+    color: var(--text-primary);
+}
+
+.btn-delete-user {
+    padding: 8px 16px;
+    background-color: transparent;
+    border: 1px solid var(--error);
+    border-radius: 6px;
+    color: var(--error);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.btn-delete-user:hover {
+    background-color: var(--error);
+    color: var(--text-primary);
+}
+
+@media (max-width: 576px) {
+    .container {
+        max-width: 100%;
+        padding: 70px 12px 12px;
+    }
+    
+    h1 {
+        font-size: 20px;
+    }
+    
+    .auth-input {
+        padding: 12px 14px;
+        font-size: 13px;
+    }
+    
+    .btn-upload, .btn-search {
+        padding: 12px 20px;
+        font-size: 14px;
+    }
+    
+    .video-card {
+        padding: 16px;
+    }
+    
+    .video-card-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
+    
+    .video-title {
+        font-size: 14px;
+        word-break: break-word;
+    }
+    
+    .video-date {
+        font-size: 11px;
+    }
+    
+    .search-row {
+        flex-direction: column;
+    }
+    
+    .search-row .auth-input {
+        width: 100%;
+    }
+    
+    .pagination-nav {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    
+    .menu-list {
+        gap: 10px;
+    }
+    
+    .menu-item {
+        padding: 16px;
+    }
+    
+    .menu-icon {
+        font-size: 24px;
+    }
+    
+    .menu-text {
+        font-size: 14px;
+    }
+    
+    .video-card-body .video-player {
+        max-height: 200px;
+    }
+    
+    .upload-actions {
+        flex-direction: column;
+    }
+    
+    .btn-upload, .btn-clear {
+        width: 100%;
+    }
+}
+
+@media (min-width: 768px) {
+    .container {
+        max-width: 640px;
+    }
+    
+    h1 {
+        font-size: 28px;
+    }
+    
+    .video-card-body .video-player {
+        max-height: 360px;
+    }
 }
