@@ -38,10 +38,16 @@ public class PageController {
     }
 
     @GetMapping("/home")
-    public String home(org.springframework.security.core.Authentication authentication, Model model) {
-        model.addAttribute("username", authentication.getName());
-        model.addAttribute("isAdmin", authentication.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN")));
+    public String home(org.springframework.security.core.Authentication authentication, 
+                      Model model, java.util.Locale locale) {
+        if (authentication != null && authentication.isAuthenticated()) {
+            model.addAttribute("username", authentication.getName());
+            model.addAttribute("isAdmin", authentication.getAuthorities().stream()
+                    .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN")));
+        } else {
+            model.addAttribute("username", "Гость");
+            model.addAttribute("isAdmin", false);
+        }
         return "home";
     }
 }

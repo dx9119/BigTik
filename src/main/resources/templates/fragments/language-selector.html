@@ -2,8 +2,12 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
     <div th:fragment="language-selector" class="language-selector">
-        <a th:if="${#locale.language != 'ru'}" th:href="@{/home(lang=ru)}" class="lang-link" th:text="#{language.ru}">Русский</a>
-        <a th:if="${#locale.language != 'en'}" th:href="@{/home(lang=en)}" class="lang-link" th:text="#{language.en}">English</a>
+        <th:block th:if="${#locale.language != 'ru'}">
+            <a th:href="@{''(lang=ru)}" class="lang-link" th:text="#{language.ru}">Русский</a>
+        </th:block>
+        <th:block th:if="${#locale.language != 'en'}">
+            <a th:href="@{''(lang=en)}" class="lang-link" th:text="#{language.en}">Английский</a>
+        </th:block>
     </div>
 </body>
 </html>

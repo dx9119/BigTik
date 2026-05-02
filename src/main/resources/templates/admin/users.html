@@ -35,6 +35,7 @@
 
                 <div class="user-actions">
                     <form th:action="@{'/admin/users/' + ${user.id} + '/role'}" method="post" class="role-form">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
                         <input type="hidden" name="page" th:value="${currentPage}"/>
                         <select name="role" class="role-select">
                             <option th:each="role : ${roles}"
@@ -47,6 +48,7 @@
                     </form>
 
                     <form th:if="${user.enabled}" th:action="@{'/admin/users/' + ${user.id} + '/block'}" method="post" class="d-inline">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
                         <input type="hidden" name="page" th:value="${currentPage}"/>
                         <button type="submit" class="btn-block"
                                 th:text="#{admin.user.block}"
@@ -55,12 +57,14 @@
                         </button>
                     </form>
                     <form th:unless="${user.enabled}" th:action="@{'/admin/users/' + ${user.id} + '/unblock'}" method="post" class="d-inline">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
                         <input type="hidden" name="page" th:value="${currentPage}"/>
                         <button type="submit" class="btn-unblock" th:text="#{admin.user.unblock}">Разблокировать</button>
                     </form>
 
                     <form th:action="@{'/admin/users/' + ${user.id} + '/delete'}" method="post" class="d-inline"
                           onsubmit="return confirm('Удалить пользователя?');">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
                         <input type="hidden" name="page" th:value="${currentPage}"/>
                         <button type="submit" class="btn-delete-user" th:text="#{video.delete}">Удалить</button>
                     </form>

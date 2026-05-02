@@ -10,24 +10,31 @@
 	</parent>
 	<groupId>com.ukhanov</groupId>
 	<artifactId>bigtik</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
-	<name/>
-	<description/>
-	<url/>
+	<version>1.0.0-SNAPSHOT</version>
+	<name>BigTik</name>
+	<description>Video hosting platform</description>
+	<url>https://bigtik.com</url>
 	<licenses>
-		<license/>
+		<license>
+			<name>MIT License</name>
+			<url>https://opensource.org/licenses/MIT</url>
+		</license>
 	</licenses>
 	<developers>
-		<developer/>
+		<developer>
+			<name>Developer</name>
+			<email>dev@bigtik.com</email>
+		</developer>
 	</developers>
 	<scm>
-		<connection/>
-		<developerConnection/>
-		<tag/>
-		<url/>
+		<connection>scm:git:https://github.com/ukhanov/bigtik.git</connection>
+		<developerConnection>scm:git:https://github.com/ukhanov/bigtik.git</developerConnection>
+		<url>https://github.com/ukhanov/bigtik</url>
 	</scm>
 	<properties>
 		<java.version>21</java.version>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -86,6 +93,16 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+				<executions>
+					<execution>
+						<goals>
+							<goal>repackage</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<mainClass>com.ukhanov.bigtik.BigtikApplication</mainClass>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>

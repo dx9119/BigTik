@@ -32,7 +32,7 @@ public class SecurityConfig {
                 .ignoringRequestMatchers("/api/**")
             )
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/auth/**", "/login", "/register", "/lang", "/error/**", "/css/**", "/js/**", "/images/**").permitAll()
+                .requestMatchers("/auth/**", "/login", "/register", "/lang", "/set-lang", "/error/**", "/css/**", "/js/**", "/images/**", "/home").permitAll()
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 .requestMatchers("/video/upload/**").hasAnyRole("ADMIN", "CREATOR")
                 .requestMatchers("/video/*/delete").hasAnyRole("ADMIN", "CREATOR")
