@@ -7,56 +7,63 @@
     <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
     <link rel="stylesheet" th:href="@{/css/styles.css}">
     <style>
-        body {
+        * {
             margin: 0;
             padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
             background: #000;
             overflow: hidden;
         }
 
+        /* Хедер фиксированной высоты */
+        .header-fixed {
+            flex-shrink: 0;
+        }
+
         .tags-panel {
-            position: fixed;
-            top: 60px;
-            left: 0;
-            right: 0;
+            flex-shrink: 0;
             background: rgba(33, 37, 41, 0.95);
-            padding: 12px;
+            padding: 8px 12px;
             z-index: 150;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
         }
 
-        .tags-cloud {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-            max-height: 60px;
-            overflow-y: auto;
-            margin-bottom: 10px;
+        .dropdown-menu-dark {
+            background-color: #212529;
+            border: 1px solid rgba(255,255,255,0.15);
         }
 
-        .tags-actions {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 10px;
+        .dropdown-menu-dark .form-check-label {
+            color: #fff;
         }
 
-        .tags-actions .btn {
+        .main-content {
             flex: 1;
-        }
-
-        @media (max-width: 576px) {
-            .tags-panel {
-                padding: 8px;
-            }
-            .tags-cloud {
-                max-height: 50px;
-            }
+            display: flex;
+            flex-direction: column;
+            min-height: 0; /* Важно для корректной работы flex */
+            position: relative;
         }
 
         .feed-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 0;
             width: 100%;
-            height: calc(100vh - 150px);
-            margin-top: 140px;
+            padding: 0;
+        }
+
+        #videoContainer {
+            width: 100%;
+            height: 100%;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -68,6 +75,9 @@
             height: 100%;
             max-width: 420px;
             background: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .video-player {
@@ -78,15 +88,13 @@
         }
 
         .nav-buttons {
-            position: fixed;
-            bottom: 20px;
-            left: 0;
-            right: 0;
+            flex-shrink: 0;
             display: flex;
             justify-content: center;
             gap: 40px;
             padding: 12px;
             z-index: 100;
+            background: transparent;
         }
 
         .nav-btn {
@@ -101,54 +109,94 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .nav-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: scale(1.05);
         }
 
         .nav-btn:disabled {
             opacity: 0.3;
             cursor: default;
+            transform: none;
+        }
+
+        /* Адаптив для мобильных устройств */
+        @media (max-width: 768px) {
+            .tags-panel {
+                padding: 6px 10px;
+            }
+
+            .nav-buttons {
+                gap: 30px;
+                padding: 8px;
+            }
+
+            .nav-btn {
+                width: 45px;
+                height: 45px;
+                font-size: 18px;
+            }
         }
     </style>
 </head>
 <body>
-<div th:replace="~{fragments/header :: header}"></div>
+<div th:replace="~{fragments/header :: header}" class="header-fixed"></div>
 
 <div class="tags-panel">
-    <div class="tags-cloud">
-        <button type="button" class="btn btn-sm btn-outline-warning" 
-                data-tag="no-tags" onclick="toggleNoTags()" th:text="#{video.tags.noTags}">Без тегов</button>
-        <th:block th:each="tag : ${allTags}">
-            <button type="button" class="btn btn-sm btn-outline-light tag-button" 
-                    th:text="${tag}" th:data-tag="${tag}" th:onclick="event.preventDefault()">tag</button>
-        </th:block>
-    </div>
-    <div class="row g-2">
-        <div class="col-6">
-            <button type="button" class="btn btn-outline-secondary btn-sm w-100" 
+    <div class="row g-2 align-items-center">
+        <div class="col-7">
+            <div class="dropdown">
+                <button class="btn btn-outline-light btn-sm dropdown-toggle w-100" type="button"
+                        data-bs-toggle="dropdown" data-bs-auto-close="outside" id="tagsDropdownBtn">
+                    <span th:text="#{video.tags.select}">Выберите теги</span>
+                    <span class="badge bg-primary ms-1" id="selectedCount" style="display:none;">0</span>
+                </button>
+                <div class="dropdown-menu dropdown-menu-dark p-2" style="max-height: 200px; overflow-y: auto; min-width: 250px;">
+                    <div class="form-check">
+                        <input class="form-check-input tag-checkbox" type="checkbox" value="no-tags" id="tag-no-tags">
+                        <label class="form-check-label" for="tag-no-tags" th:text="#{video.tags.noTags}">Без тегов</label>
+                    </div>
+                    <th:block th:each="tag : ${allTags}">
+                        <div class="form-check">
+                            <input class="form-check-input tag-checkbox" type="checkbox" th:value="${tag}" th:id="${'tag-' + tag}">
+                            <label class="form-check-label" th:for="${'tag-' + tag}" th:text="${tag}">tag</label>
+                        </div>
+                    </th:block>
+                </div>
+            </div>
+        </div>
+        <div class="col-3">
+            <button type="button" class="btn btn-primary btn-sm w-100"
+                    onclick="applyTags()" th:text="#{video.tags.search}">Найти</button>
+        </div>
+        <div class="col-2">
+            <button type="button" class="btn btn-outline-secondary btn-sm w-100"
                     onclick="clearTags()" th:text="#{video.search.clear}">Очистить</button>
         </div>
-        <div class="col-6">
-<button type="button" class="btn btn-primary btn-sm w-100" 
-                onclick="event.preventDefault(); applyTags()" th:text="#{video.tags.search}">Найти</button>
-        </div>
     </div>
 </div>
 
-<div class="feed-container">
-    <div id="videoContainer">
-        <div class="text-center text-white" th:if="${videos.empty}">Нет видео</div>
-        
-        <div class="video-card-feed" th:if="${not videos.empty}" th:with="video=${videos[0]}">
-            <video class="video-player" id="mainVideo" controls playsinline preload="auto">
-                <source th:src="@{/video/play/{id}(id=${video.id})}" type="video/mp4">
-            </video>
+<div class="main-content">
+    <div class="feed-container">
+        <div id="videoContainer">
+            <div class="text-center text-white" th:if="${videos.empty}">Нет видео</div>
+
+            <div class="video-card-feed" th:if="${not videos.empty}" th:with="video=${videos[0]}">
+                <video class="video-player" id="mainVideo" controls playsinline preload="auto">
+                    <source th:src="@{/video/play/{id}(id=${video.id})}" type="video/mp4">
+                </video>
+            </div>
         </div>
     </div>
-</div>
 
-<div class="nav-buttons">
-    <button class="nav-btn" id="prevBtn">↑</button>
-    <button class="nav-btn" id="randomBtn">?</button>
-    <button class="nav-btn" id="nextBtn">↓</button>
+    <div class="nav-buttons">
+        <button class="nav-btn" id="prevBtn">↑</button>
+        <button class="nav-btn" id="randomBtn">?</button>
+        <button class="nav-btn" id="nextBtn">↓</button>
+    </div>
 </div>
 
 <div th:replace="~{fragments/footer :: footer}"></div>
@@ -156,97 +204,90 @@
 <script th:inline="javascript">
     document.addEventListener('DOMContentLoaded', function() {
         console.log('DOM loaded');
-        
+
         var currentVideoId = /*[[${videos.empty ? null : videos[0].id}]]*/ null;
         var hasNext = false;
         var hasPrev = false;
         var isLoading = false;
         var noTagsSelected = false;
-        
+
         var urlParams = new URLSearchParams(window.location.search);
         var tagsParam = urlParams.get('tags');
         var noTagsParam = urlParams.get('noTags');
-        
+
         if (noTagsParam === 'true') {
             noTagsSelected = true;
-            document.querySelector('.btn-outline-warning').classList.add('active');
+            var warningBtn = document.querySelector('.btn-outline-warning');
+            if (warningBtn) warningBtn.classList.add('active');
         } else if (tagsParam) {
             var tags = tagsParam.split(',').map(function(t) { return t.trim(); });
-            document.querySelectorAll('.tag-button').forEach(function(btn) {
-                if (tags.indexOf(btn.getAttribute('data-tag')) !== -1) {
-                    btn.classList.add('active');
+            document.querySelectorAll('.tag-checkbox').forEach(function(cb) {
+                if (tags.indexOf(cb.value) !== -1) {
+                    cb.checked = true;
                 }
             });
+            updateSelectedCount();
         }
-        
-        // Tag buttons click handler
-        document.querySelectorAll('.tag-button').forEach(function(btn) {
-            btn.onclick = function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                console.log('Tag clicked:', btn.getAttribute('data-tag'));
-                document.querySelector('.btn-outline-warning').classList.remove('active');
-                noTagsSelected = false;
-                btn.classList.toggle('active');
-                console.log('Active:', btn.classList.contains('active'));
-            };
+
+        // Update count on checkbox change
+        document.querySelectorAll('.tag-checkbox').forEach(function(cb) {
+            cb.addEventListener('change', updateSelectedCount);
         });
-        
-        // No tags button
-        document.querySelector('.btn-outline-warning').onclick = function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            var btn = document.querySelector('.btn-outline-warning');
-            if (noTagsSelected) {
-                btn.classList.remove('active');
-                noTagsSelected = false;
+
+        function updateSelectedCount() {
+            var count = document.querySelectorAll('.tag-checkbox:checked').length;
+            var badge = document.getElementById('selectedCount');
+            if (count > 0) {
+                badge.textContent = count;
+                badge.style.display = 'inline';
             } else {
-                document.querySelectorAll('.tag-button').forEach(function(b) {
-                    b.classList.remove('active');
-                });
-                btn.classList.add('active');
-                noTagsSelected = true;
+                badge.style.display = 'none';
             }
-        };
-        
+        }
+
         // Search button
-        document.querySelector('.btn-primary').onclick = function(e) {
-            e.preventDefault();
-            var activeTags = [];
-            document.querySelectorAll('.tag-button.active').forEach(function(btn) {
-                activeTags.push(btn.getAttribute('data-tag'));
-            });
-            
-            console.log('Search: noTagsSelected=', noTagsSelected, ' activeTags=', activeTags);
-            
-            if (noTagsSelected) {
-                window.location.href = '/video/tags?noTags=true';
-            } else if (activeTags.length > 0) {
-                window.location.href = '/video/tags?tags=' + activeTags.join(',');
-            } else {
-                window.location.href = '/video/tags';
-            }
-        };
-        
+        var searchBtn = document.querySelector('.btn-primary');
+        if (searchBtn) {
+            searchBtn.onclick = function(e) {
+                e.preventDefault();
+                var selectedValues = [];
+                document.querySelectorAll('.tag-checkbox:checked').forEach(function(cb) {
+                    selectedValues.push(cb.value);
+                });
+
+                console.log('Selected:', selectedValues);
+
+                if (selectedValues.indexOf('no-tags') !== -1) {
+                    window.location.href = '/video/tags?noTags=true';
+                } else if (selectedValues.length > 0) {
+                    window.location.href = '/video/tags?tags=' + selectedValues.join(',');
+                } else {
+                    window.location.href = '/video/tags';
+                }
+            };
+        }
+
         // Clear button
-        document.querySelector('.btn-outline-secondary').onclick = function(e) {
-            e.preventDefault();
-            document.querySelectorAll('.tag-button').forEach(function(btn) {
-                btn.classList.remove('active');
-            });
-            document.querySelector('.btn-outline-warning').classList.remove('active');
-            noTagsSelected = false;
-            window.location.href = '/video/tags';
-        };
-        
+        var clearBtn = document.querySelector('.btn-outline-secondary');
+        if (clearBtn) {
+            clearBtn.onclick = function(e) {
+                e.preventDefault();
+                document.querySelectorAll('.tag-checkbox').forEach(function(cb) {
+                    cb.checked = false;
+                });
+                updateSelectedCount();
+                window.location.href = '/video/tags';
+            };
+        }
+
         function getTagsParam() {
             return urlParams.get('tags') || '';
         }
-    
+
         function getNoTagsParam() {
             return urlParams.get('noTags') === 'true';
         }
-    
+
         function buildApiUrl(endpoint) {
             var tags = getTagsParam();
             var noTags = getNoTagsParam();
@@ -257,44 +298,50 @@
             if (params.length > 0) apiUrl += '?' + params.join('&');
             return apiUrl;
         }
-    
+
         function updateNavButtons(next, prev) {
             hasNext = next;
             hasPrev = prev;
-            document.getElementById('prevBtn').disabled = !hasPrev;
-            document.getElementById('nextBtn').disabled = !hasNext;
+            var prevBtn = document.getElementById('prevBtn');
+            var nextBtn = document.getElementById('nextBtn');
+            if (prevBtn) prevBtn.disabled = !hasPrev;
+            if (nextBtn) nextBtn.disabled = !hasNext;
         }
-    
+
         function loadVideoBounds() {
             if (!currentVideoId) return;
             fetch(buildApiUrl('bounds'))
                 .then(function(res) { return res.json(); })
                 .then(function(data) {
                     updateNavButtons(data.hasNext, data.hasPrev);
-                });
+                })
+                .catch(function(err) { console.error('Bounds error:', err); });
         }
-    
+
         function loadVideoData(data) {
             var container = document.getElementById('videoContainer');
-            
+            if (!container) return;
+
             container.innerHTML = '<div class="video-card-feed"><video class="video-player" id="mainVideo" controls playsinline preload="auto"><source src="' + data.streamUrl + '" type="video/mp4"></video></div>';
-    
+
             currentVideoId = data.id;
             updateNavButtons(data.hasNext, data.hasPrev);
-            
+
             var video = document.getElementById('mainVideo');
-            video.addEventListener('ended', function() {
-                if (hasNext) {
-                    setTimeout(loadNextVideo, 500);
-                }
-            });
-            video.play().catch(function(e) { console.warn('Play error:', e); });
+            if (video) {
+                video.addEventListener('ended', function() {
+                    if (hasNext) {
+                        setTimeout(loadNextVideo, 500);
+                    }
+                });
+                video.play().catch(function(e) { console.warn('Play error:', e); });
+            }
         }
-    
+
         function loadNextVideo() {
             if (isLoading || !hasNext) return;
             isLoading = true;
-            
+
             fetch(buildApiUrl('next'))
                 .then(function(res) { return res.json(); })
                 .then(function(data) {
@@ -307,11 +354,11 @@
                 .catch(function(err) { console.error('Next video error:', err); })
                 .finally(function() { isLoading = false; });
         }
-    
+
         function loadPrevVideo() {
             if (isLoading || !hasPrev) return;
             isLoading = true;
-            
+
             fetch(buildApiUrl('prev'))
                 .then(function(res) { return res.json(); })
                 .then(function(data) {
@@ -324,12 +371,12 @@
                 .catch(function(err) { console.error('Prev video error:', err); })
                 .finally(function() { isLoading = false; });
         }
-    
+
         var touchStartY = 0;
         document.addEventListener('touchstart', function(e) {
             touchStartY = e.touches[0].clientY;
         });
-    
+
         document.addEventListener('touchend', function(e) {
             var touchEndY = e.changedTouches[0].clientY;
             var diff = touchStartY - touchEndY;
@@ -338,15 +385,19 @@
                 else loadPrevVideo();
             }
         });
-    
+
         document.addEventListener('keydown', function(e) {
             if (e.key === 'ArrowDown') loadNextVideo();
             if (e.key === 'ArrowUp') loadPrevVideo();
         });
-    
-        document.getElementById('prevBtn').addEventListener('click', loadPrevVideo);
-        document.getElementById('nextBtn').addEventListener('click', loadNextVideo);
-    
+
+        var prevBtn = document.getElementById('prevBtn');
+        var nextBtn = document.getElementById('nextBtn');
+        var randomBtn = document.getElementById('randomBtn');
+
+        if (prevBtn) prevBtn.addEventListener('click', loadPrevVideo);
+        if (nextBtn) nextBtn.addEventListener('click', loadNextVideo);
+
         function getRandomApiUrl() {
             var tags = getTagsParam();
             var noTags = getNoTagsParam();
@@ -357,11 +408,11 @@
             if (params.length > 0) apiUrl += '?' + params.join('&');
             return apiUrl;
         }
-    
+
         function loadRandomVideo() {
             if (isLoading) return;
             isLoading = true;
-            
+
             fetch(getRandomApiUrl())
                 .then(function(res) { return res.json(); })
                 .then(function(data) {
@@ -372,9 +423,9 @@
                 .catch(function(err) { console.error('Random video error:', err); })
                 .finally(function() { isLoading = false; });
         }
-    
-        document.getElementById('randomBtn').addEventListener('click', loadRandomVideo);
-    
+
+        if (randomBtn) randomBtn.addEventListener('click', loadRandomVideo);
+
         var video = document.getElementById('mainVideo');
         if (video) {
             video.addEventListener('ended', function() {
