@@ -5,8 +5,11 @@ import com.ukhanov.bigtik.manager.video.service.VideoService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/video")
@@ -19,16 +22,24 @@ public class VideoApiController {
     }
 
     @GetMapping("/next/{id}")
-    public ResponseEntity<?> getNextVideo(@PathVariable Long id) {
+    public ResponseEntity<?> getNextVideo(@PathVariable Long id, 
+            @RequestParam(required = false) String tags,
+            @RequestParam(required = false, defaultValue = "false") boolean noTags) {
         try {
+            List<String> tagList = parseTags(tags);
             Video current = videoService.getVideoById(id);
-            Video next = videoService.getNextVideo(current.getUploadedAt());
+            Video next = noTags 
+                    ? videoService.getNextVideoNoTags(current.getUploadedAt())
+                    : videoService.getNextVideo(current.getUploadedAt(), tagList);
             if (next == null) {
                 return ResponseEntity.ok(Map.of("hasNext", false));
             }
-            // For the returned video, check if it has neighbors
-            Video nextNext = videoService.getNextVideo(next.getUploadedAt());
-            Video nextPrev = videoService.getPreviousVideo(next.getUploadedAt());
+            Video nextNext = noTags 
+                    ? videoService.getNextVideoNoTags(next.getUploadedAt())
+                    : videoService.getNextVideo(next.getUploadedAt(), tagList);
+            Video nextPrev = noTags 
+                    ? videoService.getPreviousVideoNoTags(next.getUploadedAt())
+                    : videoService.getPreviousVideo(next.getUploadedAt(), tagList);
             return ResponseEntity.ok(buildVideoMap(next, nextNext != null, nextPrev != null));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.notFound().build();
@@ -36,16 +47,24 @@ public class VideoApiController {
     }
 
     @GetMapping("/prev/{id}")
-    public ResponseEntity<?> getPreviousVideo(@PathVariable Long id) {
+    public ResponseEntity<?> getPreviousVideo(@PathVariable Long id,
+            @RequestParam(required = false) String tags,
+            @RequestParam(required = false, defaultValue = "false") boolean noTags) {
         try {
+            List<String> tagList = parseTags(tags);
             Video current = videoService.getVideoById(id);
-            Video prev = videoService.getPreviousVideo(current.getUploadedAt());
+            Video prev = noTags 
+                    ? videoService.getPreviousVideoNoTags(current.getUploadedAt())
+                    : videoService.getPreviousVideo(current.getUploadedAt(), tagList);
             if (prev == null) {
                 return ResponseEntity.ok(Map.of("hasPrev", false));
             }
-            // For the returned video, check if it has neighbors
-            Video prevNext = videoService.getNextVideo(prev.getUploadedAt());
-            Video prevPrev = videoService.getPreviousVideo(prev.getUploadedAt());
+            Video prevNext = noTags 
+                    ? videoService.getNextVideoNoTags(prev.getUploadedAt())
+                    : videoService.getNextVideo(prev.getUploadedAt(), tagList);
+            Video prevPrev = noTags 
+                    ? videoService.getPreviousVideoNoTags(prev.getUploadedAt())
+                    : videoService.getPreviousVideo(prev.getUploadedAt(), tagList);
             return ResponseEntity.ok(buildVideoMap(prev, prevNext != null, prevPrev != null));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.notFound().build();
@@ -66,11 +85,18 @@ public class VideoApiController {
     }
 
     @GetMapping("/bounds/{id}")
-    public ResponseEntity<?> getVideoBounds(@PathVariable Long id) {
+    public ResponseEntity<?> getVideoBounds(@PathVariable Long id,
+            @RequestParam(required = false) String tags,
+            @RequestParam(required = false, defaultValue = "false") boolean noTags) {
         try {
+            List<String> tagList = parseTags(tags);
             Video current = videoService.getVideoById(id);
-            Video next = videoService.getNextVideo(current.getUploadedAt());
-            Video prev = videoService.getPreviousVideo(current.getUploadedAt());
+            Video next = noTags 
+                    ? videoService.getNextVideoNoTags(current.getUploadedAt())
+                    : videoService.getNextVideo(current.getUploadedAt(), tagList);
+            Video prev = noTags 
+                    ? videoService.getPreviousVideoNoTags(current.getUploadedAt())
+                    : videoService.getPreviousVideo(current.getUploadedAt(), tagList);
             Map<String, Object> map = new HashMap<>();
             map.put("hasNext", next != null);
             map.put("hasPrev", prev != null);
@@ -81,13 +107,36 @@ public class VideoApiController {
     }
 
     @GetMapping("/random")
-    public ResponseEntity<?> getRandomVideo() {
-        Video video = videoService.getRandomVideo();
+    public ResponseEntity<?> getRandomVideo(@RequestParam(required = false) String tags,
+            @RequestParam(required = false, defaultValue = "false") boolean noTags) {
+        List<String> tagList = parseTags(tags);
+        Video video;
+        if (noTags) {
+            video = videoService.getRandomVideoNoTags();
+        } else if (tagList.isEmpty()) {
+            video = videoService.getRandomVideo();
+        } else {
+            video = videoService.getRandomVideoByTags(tagList);
+        }
         if (video == null) {
             return ResponseEntity.ok(Map.of("error", "No videos available"));
         }
-        Video next = videoService.getNextVideo(video.getUploadedAt());
-        Video prev = videoService.getPreviousVideo(video.getUploadedAt());
+        Video next = noTags 
+                ? videoService.getNextVideoNoTags(video.getUploadedAt())
+                : videoService.getNextVideo(video.getUploadedAt(), tagList);
+        Video prev = noTags 
+                ? videoService.getPreviousVideoNoTags(video.getUploadedAt())
+                : videoService.getPreviousVideo(video.getUploadedAt(), tagList);
         return ResponseEntity.ok(buildVideoMap(video, next != null, prev != null));
+    }
+
+    private List<String> parseTags(String tags) {
+        if (tags == null || tags.isBlank()) {
+            return List.of();
+        }
+        return Arrays.stream(tags.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .collect(Collectors.toList());
     }
 }

@@ -38,6 +38,24 @@ public interface VideoRepository extends JpaRepository<Video, Long> {
     @Query("SELECT v.id FROM Video v")
     List<Long> findAllIds();
 
+    @Query("SELECT v FROM Video v WHERE :tag MEMBER OF v.tags ORDER BY v.uploadedAt DESC")
+    List<Video> findByTagsContaining(@Param("tag") String tag);
+
+    @Query("SELECT v FROM Video v WHERE :tag MEMBER OF v.tags ORDER BY v.uploadedAt DESC")
+    Page<Video> findByTagsContaining(@Param("tag") String tag, Pageable pageable);
+
+    @Query("SELECT DISTINCT v FROM Video v JOIN v.tags t WHERE t IN (:tags) ORDER BY v.uploadedAt DESC")
+    List<Video> findByTagsIn(@Param("tags") List<String> tags);
+
+    @Query("SELECT DISTINCT v FROM Video v JOIN v.tags t WHERE t IN (:tags) ORDER BY v.uploadedAt DESC")
+    Page<Video> findByTagsIn(@Param("tags") List<String> tags, Pageable pageable);
+
+    @Query("SELECT v FROM Video v WHERE v.tags IS EMPTY ORDER BY v.uploadedAt DESC")
+    List<Video> findByNoTags();
+
+    @Query("SELECT v FROM Video v WHERE v.tags IS EMPTY ORDER BY v.uploadedAt DESC")
+    Page<Video> findByNoTags(Pageable pageable);
+
 
 
 }

@@ -25,6 +25,7 @@ import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 @Service
 public class VideoService {
@@ -202,8 +203,48 @@ public class VideoService {
         return videoRepository.searchVideos(title, dateFrom, dateTo, pageable);
     }
 
+    public Page<Video> getVideosByTags(List<String> tags, Pageable pageable) {
+        if (tags.contains("no-tags")) {
+            return videoRepository.findByNoTags(pageable);
+        }
+        return videoRepository.findByTagsIn(tags, pageable);
+    }
+
+    public Page<Video> getVideosByNoTags(Pageable pageable) {
+        return videoRepository.findByNoTags(pageable);
+    }
+
+    public List<String> getAllTags() {
+        return videoRepository.findAll().stream()
+                .flatMap(v -> v.getTags().stream())
+                .distinct()
+                .sorted()
+                .toList();
+    }
+
     public Video getNextVideo(LocalDateTime afterAt) {
         return videoRepository.findNextVideos(afterAt, PageRequest.of(0, 1)).stream()
+                .findFirst()
+                .orElse(null);
+    }
+
+    public Video getNextVideo(LocalDateTime afterAt, List<String> tags) {
+        if (tags == null || tags.isEmpty()) {
+            return getNextVideo(afterAt);
+        }
+        Page<Video> page = videoRepository.findByTagsIn(tags, 
+                PageRequest.of(0, 100, Sort.by(Sort.Direction.DESC, "uploadedAt")));
+        return page.getContent().stream()
+                .filter(v -> v.getUploadedAt().isBefore(afterAt))
+                .findFirst()
+                .orElse(null);
+    }
+
+    public Video getNextVideoNoTags(LocalDateTime afterAt) {
+        Page<Video> page = videoRepository.findByNoTags(
+                PageRequest.of(0, 100, Sort.by(Sort.Direction.DESC, "uploadedAt")));
+        return page.getContent().stream()
+                .filter(v -> v.getUploadedAt().isBefore(afterAt))
                 .findFirst()
                 .orElse(null);
     }
@@ -211,6 +252,27 @@ public class VideoService {
     public Video getPreviousVideo(LocalDateTime beforeAt) {
         return videoRepository.findPreviousVideos(beforeAt, PageRequest.of(0, 1)).stream()
                 .findFirst()
+                .orElse(null);
+    }
+
+    public Video getPreviousVideo(LocalDateTime beforeAt, List<String> tags) {
+        if (tags == null || tags.isEmpty()) {
+            return getPreviousVideo(beforeAt);
+        }
+        Page<Video> page = videoRepository.findByTagsIn(tags, 
+                PageRequest.of(0, 100, Sort.by(Sort.Direction.DESC, "uploadedAt")));
+        return page.getContent().stream()
+                .filter(v -> v.getUploadedAt().isAfter(beforeAt))
+                .reduce((first, second) -> second)
+                .orElse(null);
+    }
+
+    public Video getPreviousVideoNoTags(LocalDateTime beforeAt) {
+        Page<Video> page = videoRepository.findByNoTags(
+                PageRequest.of(0, 100, Sort.by(Sort.Direction.DESC, "uploadedAt")));
+        return page.getContent().stream()
+                .filter(v -> v.getUploadedAt().isAfter(beforeAt))
+                .reduce((first, second) -> second)
                 .orElse(null);
     }
 
@@ -222,6 +284,29 @@ public class VideoService {
         Long randomId = ids.get(randomIndex);
 
         return videoRepository.findById(randomId).orElse(null);
+    }
+
+    public Video getRandomVideoByTags(List<String> tags) {
+        if (tags == null || tags.isEmpty()) {
+            return getRandomVideo();
+        }
+        Page<Video> page = videoRepository.findByTagsIn(tags, 
+                PageRequest.of(0, 100, Sort.by(Sort.Direction.DESC, "uploadedAt")));
+        List<Video> videos = page.getContent();
+        if (videos.isEmpty()) return null;
+
+        int randomIndex = (int) (Math.random() * videos.size());
+        return videos.get(randomIndex);
+    }
+
+    public Video getRandomVideoNoTags() {
+        Page<Video> page = videoRepository.findByNoTags(
+                PageRequest.of(0, 100, Sort.by(Sort.Direction.DESC, "uploadedAt")));
+        List<Video> videos = page.getContent();
+        if (videos.isEmpty()) return null;
+
+        int randomIndex = (int) (Math.random() * videos.size());
+        return videos.get(randomIndex);
     }
 
 

@@ -34,6 +34,10 @@
                 <span class="menu-icon">🎬</span>
                 <span class="menu-text" th:text="#{video.list.title}">Видео</span>
             </a>
+            <a th:href="@{/video/tags}" class="menu-item">
+                <span class="menu-icon">🏷️</span>
+                <span class="menu-text" th:text="#{video.tags.title}">Видео по тегам</span>
+            </a>
             <a th:href="@{/admin/users}" class="menu-item" th:if="${isAdmin}">
                 <span class="menu-icon">⚙️</span>
                 <span class="menu-text" th:text="#{admin.panel}">Админ-панель</span>
