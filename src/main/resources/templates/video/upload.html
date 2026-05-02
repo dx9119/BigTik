@@ -22,9 +22,9 @@
                 </div>
                 
                 <div class="mb-3">
-                    <label th:text="#{video.files}">Файлы (до 50)</label>
+                    <label th:text="#{video.files}">Файлы (до 1000)</label>
                     <div class="file-input-wrapper" onclick="document.getElementById('fileInput').click()">
-                        <span th:text="#{video.selectFiles}">Выберите файлы (до 50)</span>
+                        <span th:text="#{video.selectFiles}">Выберите файлы (до 1000)</span>
                     </div>
                     <input type="file" id="fileInput" accept="video/*" multiple>
                 </div>
@@ -80,8 +80,8 @@
         document.getElementById('fileInput').addEventListener('change', function(e) {
             const files = Array.from(e.target.files);
             
-            if (fileQueue.length + files.length > 50) {
-                showError(MSG_MAX_FILES.replace('{0}', 50));
+            if (fileQueue.length + files.length > 1000) {
+                showError(MSG_MAX_FILES.replace('{0}', 1000));
                 return;
             }
             
