@@ -73,6 +73,7 @@ public class VideoController {
         model.addAttribute("searchTitle", searchTitle);
         model.addAttribute("dateFrom", dateFrom);
         model.addAttribute("dateTo", dateTo);
+        model.addAttribute("allTags", videoService.getAllTags());
         return "video/list";
     }
 
@@ -95,5 +96,33 @@ public class VideoController {
         model.addAttribute("isAdmin", authentication.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN")));
         return "video/list";
+    }
+
+    @PostMapping("/video/{id}/add-tag")
+    public String addTag(@PathVariable Long id,
+                       @RequestParam String tag,
+                       @RequestParam(defaultValue = "0") int page,
+                       Authentication authentication, Model model) {
+        try {
+            videoService.addTag(id, tag, authentication.getName());
+            model.addAttribute("successKey", "video.tag.added");
+        } catch (IllegalArgumentException e) {
+            model.addAttribute("error", e.getMessage());
+        }
+        return listPage(page, 10, null, null, null, model, authentication);
+    }
+
+    @PostMapping("/video/{id}/remove-tag")
+    public String removeTag(@PathVariable Long id,
+                        @RequestParam String tag,
+                        @RequestParam(defaultValue = "0") int page,
+                        Authentication authentication, Model model) {
+        try {
+            videoService.removeTag(id, tag, authentication.getName());
+            model.addAttribute("successKey", "video.tag.removed");
+        } catch (IllegalArgumentException e) {
+            model.addAttribute("error", e.getMessage());
+        }
+        return listPage(page, 10, null, null, null, model, authentication);
     }
 }

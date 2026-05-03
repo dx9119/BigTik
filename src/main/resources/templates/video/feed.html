@@ -9,13 +9,14 @@
         body {
             margin: 0;
             padding: 0;
+            padding-bottom: 80px;
             background: #000;
             overflow: hidden;
         }
 
         .feed-container {
             width: 100%;
-            height: calc(100vh - 60px);
+            height: calc(100vh - 120px);
             margin-top: 60px;
             display: flex;
             align-items: center;
@@ -37,9 +38,9 @@
             background: #000;
         }
 
-        .nav-buttons {
+        .nav-buttons-wrapper {
             position: fixed;
-            bottom: 20px;
+            bottom: 80px;
             left: 0;
             right: 0;
             display: flex;
@@ -84,7 +85,7 @@
     </div>
 </div>
 
-<div class="nav-buttons">
+<div class="nav-buttons-wrapper">
     <button class="nav-btn" id="prevBtn">↑</button>
     <button class="nav-btn" id="randomBtn">?</button>
     <button class="nav-btn" id="nextBtn">↓</button>

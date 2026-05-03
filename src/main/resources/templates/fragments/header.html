@@ -1,13 +1,8 @@
-<!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<body>
-    <header th:fragment="header" class="site-header">
-        <div class="header-content">
-            <a th:href="@{/home}" class="header-logo" th:text="#{app.name}"></a>
-            <nav class="header-nav">
-                <a th:href="@{/home}" class="header-link" th:text="#{profile.backHome}"></a>
-            </nav>
-        </div>
-    </header>
-</body>
-</html>
+<header th:fragment="header" class="site-header">
+    <div class="header-content">
+        <a th:href="@{/home}" class="header-logo" th:text="#{app.name}"></a>
+        <nav class="header-nav">
+            <a th:href="@{/home}" class="header-link" th:text="#{profile.backHome}"></a>
+        </nav>
+    </div>
+</header>

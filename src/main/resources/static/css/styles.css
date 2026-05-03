@@ -333,6 +333,68 @@ button.secondary:hover,
     font-size: 12px;
 }
 
+.video-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--bg-tertiary);
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+}
+
+.tag-remove-btn {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 0 2px;
+    font-size: 14px;
+    line-height: 1;
+}
+
+.tag-remove-btn:hover {
+    color: var(--color-error);
+}
+
+.tag-add-form {
+    display: inline-flex;
+    margin-right: 8px;
+}
+
+.tag-input-group {
+    display: inline-flex;
+    gap: 4px;
+}
+
+.tag-input {
+    width: 100px;
+    padding: 4px 8px;
+    font-size: 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+}
+
+.tag-input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+}
+
+.video-tag-form {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.dropdown .dropdown-menu {
+    max-height: 200px;
+    overflow-y: auto;
+}
+
 .video-uploader {
     font-size: 13px;
 }
@@ -473,6 +535,12 @@ button.secondary:hover,
 
 .menu-text {
     flex: 1;
+}
+
+.menu-separator {
+    height: 1px;
+    background: var(--border-color);
+    margin: 8px 0;
 }
 
 .logout-form {

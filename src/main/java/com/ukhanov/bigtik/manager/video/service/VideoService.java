@@ -309,5 +309,49 @@ public class VideoService {
         return videos.get(randomIndex);
     }
 
+    public Video addTag(Long videoId, String tag, String username) {
+        Video video = videoRepository.findById(videoId)
+                .orElseThrow(() -> new IllegalArgumentException("Video not found"));
+
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        boolean isAdmin = user.getRoles().stream()
+                .anyMatch(role -> role.name().equals("ADMIN"));
+        boolean isOwner = video.getUploader().getUsername().equals(username);
+
+        if (!isAdmin && !isOwner) {
+            throw new IllegalArgumentException("You don't have permission to modify tags");
+        }
+
+        String trimmedTag = tag.trim();
+        if (!trimmedTag.isEmpty()) {
+            video.getTags().add(trimmedTag);
+            videoRepository.save(video);
+        }
+
+        return video;
+    }
+
+    public Video removeTag(Long videoId, String tag, String username) {
+        Video video = videoRepository.findById(videoId)
+                .orElseThrow(() -> new IllegalArgumentException("Video not found"));
+
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        boolean isAdmin = user.getRoles().stream()
+                .anyMatch(role -> role.name().equals("ADMIN"));
+        boolean isOwner = video.getUploader().getUsername().equals(username);
+
+        if (!isAdmin && !isOwner) {
+            throw new IllegalArgumentException("You don't have permission to modify tags");
+        }
+
+        video.getTags().remove(tag.trim());
+        videoRepository.save(video);
+
+        return video;
+    }
 
 }
