@@ -153,6 +153,30 @@ public class VideoService {
         }
     }
 
+    public void updateVideoTitle(Long videoId, String newTitle, String username) {
+        Video video = videoRepository.findById(videoId)
+                .orElseThrow(() -> new IllegalArgumentException("Video not found"));
+
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        boolean isAdmin = user.getRoles().stream()
+                .anyMatch(role -> role.name().equals("ADMIN"));
+
+        boolean isOwner = video.getUploader().getUsername().equals(username);
+
+        if (!isAdmin && !isOwner) {
+            throw new IllegalArgumentException("You don't have permission to update this video");
+        }
+
+        if (newTitle == null || newTitle.trim().isEmpty()) {
+            throw new IllegalArgumentException("Title cannot be empty");
+        }
+
+        video.setTitle(newTitle.trim());
+        videoRepository.save(video);
+    }
+
     public void deleteVideo(Long videoId, String username) {
         Video video = videoRepository.findById(videoId)
                 .orElseThrow(() -> new IllegalArgumentException("Video not found"));
@@ -199,8 +223,8 @@ public class VideoService {
         }
     }
     
-    public Page<Video> searchVideos(String title, LocalDateTime dateFrom, LocalDateTime dateTo, Pageable pageable) {
-        return videoRepository.searchVideos(title, dateFrom, dateTo, pageable);
+    public Page<Video> searchVideos(String title, LocalDateTime dateFrom, LocalDateTime dateTo, List<String> tags, Pageable pageable) {
+        return videoRepository.searchVideos(title, dateFrom, dateTo, tags, pageable);
     }
 
     public Page<Video> getVideosByTags(List<String> tags, Pageable pageable) {

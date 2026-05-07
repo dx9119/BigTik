@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
 
 @Controller
@@ -53,12 +54,23 @@ public class VideoController {
                         @RequestParam(required = false) String searchTitle,
                         @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime dateFrom,
                         @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime dateTo,
+                        @RequestParam(required = false) String searchTags,
                         Model model, Authentication authentication) {
         PageRequest pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "uploadedAt"));
         Page<Video> videosPage;
         
-        if (searchTitle != null || dateFrom != null || dateTo != null) {
-            videosPage = videoService.searchVideos(searchTitle, dateFrom, dateTo, pageRequest);
+        List<String> tagList = null;
+        if (searchTags != null && !searchTags.isEmpty()) {
+            tagList = Arrays.stream(searchTags.split(","))
+                    .map(String::trim)
+                    .filter(s -> !s.isEmpty())
+                    .toList();
+        }
+        
+        boolean hasSearch = (searchTitle != null && !searchTitle.isEmpty()) || dateFrom != null || dateTo != null || (tagList != null && !tagList.isEmpty());
+        
+        if (hasSearch) {
+            videosPage = videoService.searchVideos(searchTitle, dateFrom, dateTo, tagList, pageRequest);
         } else {
             videosPage = videoService.getAllVideosPaged(pageRequest);
         }
@@ -73,8 +85,23 @@ public class VideoController {
         model.addAttribute("searchTitle", searchTitle);
         model.addAttribute("dateFrom", dateFrom);
         model.addAttribute("dateTo", dateTo);
+        model.addAttribute("searchTags", searchTags);
         model.addAttribute("allTags", videoService.getAllTags());
         return "video/list";
+    }
+
+    @PostMapping("/video/{id}/update-title")
+    public String updateTitle(@PathVariable Long id,
+                           @RequestParam String title,
+                           @RequestParam(defaultValue = "0") int page,
+                           Authentication authentication, Model model) {
+        try {
+            videoService.updateVideoTitle(id, title, authentication.getName());
+            model.addAttribute("successKey", "video.title.updated");
+        } catch (IllegalArgumentException e) {
+            model.addAttribute("error", e.getMessage());
+        }
+        return listPage(page, 10, null, null, null, null, model, authentication);
     }
 
     @PostMapping("/video/{id}/delete")
@@ -109,7 +136,7 @@ public class VideoController {
         } catch (IllegalArgumentException e) {
             model.addAttribute("error", e.getMessage());
         }
-        return listPage(page, 10, null, null, null, model, authentication);
+        return listPage(page, 10, null, null, null, null, model, authentication);
     }
 
     @PostMapping("/video/{id}/remove-tag")
@@ -123,6 +150,6 @@ public class VideoController {
         } catch (IllegalArgumentException e) {
             model.addAttribute("error", e.getMessage());
         }
-        return listPage(page, 10, null, null, null, model, authentication);
+        return listPage(page, 10, null, null, null, null, model, authentication);
     }
 }

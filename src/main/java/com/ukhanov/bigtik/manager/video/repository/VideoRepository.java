@@ -18,13 +18,15 @@ public interface VideoRepository extends JpaRepository<Video, Long> {
     List<Video> findByUploader_UsernameOrderByUploadedAtDesc(String username);
     Page<Video> findAllByOrderByUploadedAtDesc(Pageable pageable);
     
-    @Query("SELECT v FROM Video v WHERE " +
+    @Query("SELECT DISTINCT v FROM Video v LEFT JOIN v.tags t WHERE " +
            "(:title IS NULL OR LOWER(v.title) LIKE LOWER(CONCAT('%', :title, '%'))) AND " +
            "(:dateFrom IS NULL OR v.uploadedAt >= :dateFrom) AND " +
-           "(:dateTo IS NULL OR v.uploadedAt <= :dateTo)")
+           "(:dateTo IS NULL OR v.uploadedAt <= :dateTo) AND " +
+           "(:tags IS NULL OR t IN (:tags))")
     Page<Video> searchVideos(@Param("title") String title,
                          @Param("dateFrom") LocalDateTime dateFrom,
                          @Param("dateTo") LocalDateTime dateTo,
+                         @Param("tags") List<String> tags,
                          Pageable pageable);
 
     @Query("SELECT v FROM Video v WHERE v.uploadedAt < :uploadedAt ORDER BY v.uploadedAt DESC")
