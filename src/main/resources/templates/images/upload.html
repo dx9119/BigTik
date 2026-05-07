@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="#{images.upload.title}">Upload Images</title>
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <style>
+        .upload-progress { transition: width 0.3s ease; }
+        .file-item { border-left: 3px solid #0d6efd; color: #000; }
+        .file-item.failed { border-left-color: #dc3545; }
+        .file-item.success { border-left-color: #198754; }
+        .file-item.pending { border-left-color: #6c757d; }
+    </style>
+</head>
+<body>
+
+    <div th:replace="~{fragments/header :: header}"></div>
+    
+    <div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 th:text="#{images.upload.title}">Upload Images</h1>
+                <a th:href="@{/images}" class="btn btn-secondary" th:text="#{images.upload.back}">Back to Gallery</a>
+            </div>
+
+            <!-- Error Alert -->
+            <div id="errorAlert" class="alert alert-danger alert-dismissible fade show d-none" role="alert">
+                <span id="errorMessage"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" th:aria-label="#{images.details.close}"></button>
+            </div>
+
+            <!-- Upload Form -->
+            <div class="card shadow">
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="title" class="form-label" th:text="#{images.upload.title.optional}">Title (optional)</label>
+                        <input type="text" class="form-control" id="title" name="title"
+                               th:placeholder="#{images.upload.title.placeholder}">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="tags" class="form-label" th:text="#{images.upload.tags.label}">Tags (comma-separated, optional)</label>
+                        <input type="text" class="form-control" id="tags" name="tags"
+                               th:placeholder="#{images.upload.tags.placeholder}">
+                        <div class="form-text" th:text="#{images.upload.tags.help}">These tags will be applied to all uploaded images.</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="files" class="form-label" th:text="#{images.upload.files.label}">Select Images</label>
+                        <input type="file" class="form-control" id="files" name="files"
+                               multiple accept="image/jpeg,image/png,image/gif,image/webp">
+                        <div class="form-text" th:text="#{images.upload.files.help}">You can select multiple images (JPEG, PNG, GIF, WEBP)</div>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <button type="button" id="uploadBtn" class="btn btn-primary btn-lg" th:text="#{images.upload.button}" disabled>Upload Images</button>
+                        <span id="fileCount" class="text-muted"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Progress Section -->
+            <div id="progressSection" class="card shadow mt-3 d-none">
+                <div class="card-body">
+                    <h5 th:text="#{images.upload.progress}">Uploading...</h5>
+                    <div class="progress mb-3" style="height: 20px;">
+                        <div id="progressBar" class="progress-bar" role="progressbar" style="width: 0%;"></div>
+                    </div>
+                    <div id="progressText" class="text-muted text-center"></div>
+                </div>
+            </div>
+
+            <!-- Results Section -->
+            <div id="resultsSection" class="card shadow mt-3 d-none">
+                <div class="card-header">
+                    <h5 class="mb-0" th:text="#{images.upload.results}">Results</h5>
+                </div>
+                <div class="card-body" id="resultsBody"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script th:src="@{/js/bootstrap.bundle.min.js}"></script>
+<script th:inline="javascript">
+const csrfToken = /*[[${_csrf.token}]]*/ '';
+const csrfHeader = /*[[${_csrf.headerName}]]*/ 'X-CSRF-TOKEN';
+const duplicateLabel = /*[[#{images.upload.duplicate}]]*/ 'Duplicate';
+const skippedDuplicateLabel = /*[[#{images.upload.skipped.duplicate}]]*/ 'Skipped (duplicate)';
+const uploadedLabel = /*[[#{images.uploaded}]]*/ 'Uploaded';
+const failedLabel = /*[[#{images.failed}]]*/ 'Failed';
+
+document.addEventListener('DOMContentLoaded', function() {
+    const fileInput = document.getElementById('files');
+    const uploadBtn = document.getElementById('uploadBtn');
+    const fileCount = document.getElementById('fileCount');
+    const progressSection = document.getElementById('progressSection');
+    const progressBar = document.getElementById('progressBar');
+    const progressText = document.getElementById('progressText');
+    const resultsSection = document.getElementById('resultsSection');
+    const resultsBody = document.getElementById('resultsBody');
+    const errorAlert = document.getElementById('errorAlert');
+    const errorMessage = document.getElementById('errorMessage');
+
+    let selectedFiles = [];
+    let fileHashes = {};
+    let duplicateHashes = [];
+
+    fileInput.addEventListener('change', function(e) {
+        selectedFiles = Array.from(this.files);
+        uploadBtn.disabled = selectedFiles.length === 0;
+        fileCount.textContent = selectedFiles.length + ' ' + (selectedFiles.length === 1 ? 'file' : 'files');
+        
+        resultsSection.classList.add('d-none');
+        progressSection.classList.add('d-none');
+        
+        if (selectedFiles.length > 0) {
+            checkDuplicates();
+        }
+    });
+
+    async function computeHash(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const arrayBuffer = e.target.result;
+                crypto.subtle.digest('SHA-256', arrayBuffer).then(hashBuffer => {
+                    const hashArray = Array.from(new Uint8Array(hashBuffer));
+                    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+                    resolve(hashHex);
+                }).catch(reject);
+            };
+            reader.onerror = reject;
+            reader.readAsArrayBuffer(file);
+        });
+    }
+
+    async function checkDuplicates() {
+        fileHashes = {};
+        const hashes = [];
+        
+        for (const file of selectedFiles) {
+            try {
+                const hash = await computeHash(file);
+                fileHashes[file.name] = hash;
+                hashes.push(hash);
+            } catch (e) {
+                console.error('Error computing hash for', file.name, e);
+            }
+        }
+
+        if (hashes.length === 0) return;
+
+        try {
+            const response = await fetch('/images/check-hashes', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    [csrfHeader]: csrfToken
+                },
+                body: JSON.stringify({ hashes: hashes })
+            });
+            
+            const data = await response.json();
+            const existingHashes = data.existing || [];
+            duplicateHashes = existingHashes;
+            
+            resultsBody.innerHTML = '';
+            
+            for (const file of selectedFiles) {
+                const hash = fileHashes[file.name];
+                const isDuplicate = existingHashes.includes(hash);
+                
+                const div = document.createElement('div');
+                div.className = 'file-item p-2 mb-2 bg-light rounded' + (isDuplicate ? ' failed' : ' pending');
+                div.id = 'file-' + file.name.replace(/[^a-zA-Z0-9]/g, '_');
+                
+                if (isDuplicate) {
+                    div.innerHTML = '<strong>' + file.name + '</strong> <span>(' + duplicateLabel + ')</span>';
+                } else {
+                    div.innerHTML = '<strong>' + file.name + '</strong> <span>(' + formatSize(file.size) + ')</span>';
+                }
+                
+                resultsBody.appendChild(div);
+            }
+            
+            resultsSection.classList.remove('d-none');
+            
+        } catch (e) {
+            console.error('Error checking duplicates:', e);
+        }
+    }
+
+    async function uploadFiles() {
+        if (selectedFiles.length === 0) return;
+
+        progressSection.classList.remove('d-none');
+        resultsSection.classList.remove('d-none');
+        uploadBtn.disabled = true;
+        
+        let uploaded = 0;
+        const total = selectedFiles.length;
+        const successful = [];
+        const failed = [];
+
+        for (let i = 0; i < selectedFiles.length; i++) {
+            const file = selectedFiles[i];
+            const fileId = 'file-' + file.name.replace(/[^a-zA-Z0-9]/g, '_');
+            const fileDiv = document.getElementById(fileId);
+            
+            const hash = fileHashes[file.name];
+            if (hash && duplicateHashes.includes(hash)) {
+                failed.push(file.name + ' (' + duplicateLabel + ')');
+                if (fileDiv) {
+                    fileDiv.className = 'file-item p-2 mb-2 bg-light rounded failed';
+                    fileDiv.innerHTML += ' <span>' + skippedDuplicateLabel + '</span>';
+                }
+                continue;
+            }
+            
+            const progress = Math.round(((i) / total) * 100);
+            progressBar.style.width = progress + '%';
+            progressText.textContent = (i) + ' / ' + total;
+            
+            if (fileDiv) {
+                fileDiv.className = 'file-item p-2 mb-2 bg-light rounded upload-progress';
+            }
+
+            try {
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('title', document.getElementById('title').value);
+                formData.append('tags', document.getElementById('tags').value);
+
+                const response = await fetch('/images/upload-single', {
+                    method: 'POST',
+                    headers: {
+                        [csrfHeader]: csrfToken
+                    },
+                    body: formData
+                });
+
+                const contentType = response.headers.get('content-type');
+                
+                if (contentType && contentType.includes('application/json')) {
+                    const data = await response.json();
+                    
+                    if (data.error) {
+                        if (data.error === 'duplicate') {
+                            failed.push(file.name + ' (' + duplicateLabel + ')');
+                            if (fileDiv) {
+                                fileDiv.className = 'file-item p-2 mb-2 bg-light rounded failed';
+                                fileDiv.innerHTML += ' <span>(' + duplicateLabel + ')</span>';
+                            }
+                        } else {
+                            failed.push(file.name + ' (' + data.error + ')');
+                            if (fileDiv) {
+                                fileDiv.className = 'file-item p-2 mb-2 bg-light rounded failed';
+                                fileDiv.innerHTML += ' <span>Error: ' + data.error + '</span>';
+                            }
+                        }
+                    } else if (data.success) {
+                        successful.push(file.name);
+                        if (fileDiv) {
+                            fileDiv.className = 'file-item p-2 mb-2 bg-light rounded success';
+                            fileDiv.innerHTML += ' <span>OK</span>';
+                        }
+                    } else {
+                        failed.push(file.name + ' (unknown error)');
+                        if (fileDiv) {
+                            fileDiv.className = 'file-item p-2 mb-2 bg-light rounded failed';
+                            fileDiv.innerHTML += ' <span>Unknown error</span>';
+                        }
+                    }
+                } else if (response.ok) {
+                    successful.push(file.name);
+                    if (fileDiv) {
+                        fileDiv.className = 'file-item p-2 mb-2 bg-light rounded success';
+                        fileDiv.innerHTML += ' <span>OK</span>';
+                    }
+                } else {
+                    failed.push(file.name + ' (server error)');
+                    if (fileDiv) {
+                        fileDiv.className = 'file-item p-2 mb-2 bg-light rounded failed';
+                        fileDiv.innerHTML += ' <span>Server error</span>';
+                    }
+                }
+                
+            } catch (e) {
+                failed.push(file.name + ' (' + e.message + ')');
+                if (fileDiv) {
+                    fileDiv.className = 'file-item p-2 mb-2 bg-light rounded failed';
+                    fileDiv.innerHTML += ' <span>Error: ' + e.message + '</span>';
+                }
+            }
+
+            uploaded++;
+            const currentProgress = Math.round((uploaded / total) * 100);
+            progressBar.style.width = currentProgress + '%';
+            progressText.textContent = uploaded + ' / ' + total;
+        }
+
+        progressBar.style.width = '100%';
+        progressBar.classList.add('bg-success');
+        progressText.textContent = 'Complete: ' + successful.length + ' ' + uploadedLabel + ', ' + failed.length + ' ' + failedLabel;
+        
+        resultsSection.classList.remove('d-none');
+        
+        if (successful.length > 0) {
+            const successHeader = document.createElement('h6');
+            successHeader.className = 'text-success mt-2';
+            successHeader.textContent = uploadedLabel + ': ' + successful.length;
+            resultsBody.appendChild(successHeader);
+        }
+        
+        if (failed.length > 0) {
+            const failHeader = document.createElement('h6');
+            failHeader.className = 'text-danger mt-2';
+            failHeader.textContent = failedLabel + ': ' + failed.length;
+            resultsBody.appendChild(failHeader);
+            
+            const failList = document.createElement('ul');
+            failList.className = 'text-danger small';
+            for (const f of failed) {
+                const li = document.createElement('li');
+                li.textContent = f;
+                failList.appendChild(li);
+            }
+            resultsBody.appendChild(failList);
+        }
+
+        uploadBtn.disabled = false;
+    }
+
+    uploadBtn.addEventListener('click', uploadFiles);
+
+    function formatSize(bytes) {
+        if (bytes < 1024) return bytes + ' B';
+        if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+        return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+    }
+});
+</script>
+
+    <div th:replace="~{fragments/footer :: footer}"></div>
+    
+</body>
+</html>

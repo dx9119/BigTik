@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras-spring-security" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="#{images.gallery.title}">Image Gallery</title>
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body>
+
+    <div th:replace="~{fragments/header :: header}"></div>
+    
+    <div class="container mt-4">
+        <!-- Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 th:text="#{images.gallery.title}">Image Gallery</h1>
+            <div>
+                <span class="me-3" th:text="#{images.welcome} + ': '">
+                    Welcome, <strong th:text="${currentUser != null ? currentUser : #messages.msg('images.guest')}">User</strong>
+                </span>
+                <a th:href="@{/images/upload}" class="btn btn-primary" th:text="#{images.upload.title}">Upload Images</a>
+            </div>
+        </div>
+
+        <!-- Filter by tags -->
+        <div class="card mb-3">
+            <div class="card-body py-2">
+                <form method="get" action="/images" class="row g-2 align-items-center">
+                    <div class="col-auto flex-grow-1">
+                        <input type="text" class="form-control form-control-sm" id="tagsInput" name="tags"
+                               th:value="${tags != null ? tags.toString().replace('[', '').replace(']', '') : ''}"
+                               th:placeholder="#{images.filter.tags.placeholder}">
+                    </div>
+                    <div class="col-auto">
+                        <button type="submit" class="btn btn-secondary btn-sm" th:text="#{images.filter.apply}">→</button>
+                        <a th:if="${tags != null and !tags.isEmpty()}" th:href="@{/images}" class="btn btn-outline-danger btn-sm" th:text="#{images.filter.clear}">×</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Images Grid -->
+        <div th:if="${images != null and !images.empty}">
+            <div class="row g-3">
+                <th:block th:each="image : ${images.content}">
+                    <div class="col-12">
+                        <div class="card h-100 shadow-sm d-flex flex-column">
+                            <div class="card-body p-2 flex-grow-1">
+                                <img th:src="@{/images/{id}/content(id=${image.id})}"
+                                     class="img-fluid mx-auto d-block"
+                                     th:alt="${image.title != null ? image.title : #messages.msg('images.grid.untitled')}"
+                                     style="max-height: 250px; object-fit: contain; cursor: pointer;"
+                                     th:onclick="'location.href=\'/images/' + ${image.id} + '\''">
+                            </div>
+                            <div class="card-body py-2 px-3">
+                                <h6 class="card-title text-truncate mb-1" style="font-size: 0.85rem;" th:text="${image.title != null ? image.title : #messages.msg('images.grid.untitled')}">Title</h6>
+                                <p class="card-text mb-1" style="font-size: 0.75rem;">
+                                    <span th:text="#{images.grid.uploaded}">Uploaded</span>: <span th:text="${#temporals.format(image.uploadedAt, 'yyyy-MM-dd HH:mm')}">date</span>
+                                </p>
+                                <div th:if="${image.tags != null and !image.tags.isEmpty()}" class="text-truncate">
+                                    <span th:each="tag : ${image.tags}" class="badge bg-secondary me-1" th:text="${tag}" style="font-size: 0.7rem;">tag</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </th:block>
+            </div>
+
+            <!-- Pagination -->
+            <nav aria-label="Page navigation" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item" th:classappend="${!images.hasPrevious()} ? 'disabled'">
+                        <a class="page-link" th:href="@{/images(page=${images.number - 1}, size=${images.size}, tags=${tags})}" th:text="#{images.pagination.previous}">Previous</a>
+                    </li>
+
+                    <li th:each="i : ${#numbers.sequence(0, images.totalPages - 1)}"
+                        class="page-item"
+                        th:classappend="${i == images.number} ? 'active'">
+                        <a class="page-link" th:href="@{/images(page=${i}, size=${images.size}, tags=${tags})}" th:text="${i + 1}">1</a>
+                    </li>
+
+                    <li class="page-item" th:classappend="${!images.hasNext()} ? 'disabled'">
+                        <a class="page-link" th:href="@{/images(page=${images.number + 1}, size=${images.size}, tags=${tags})}" th:text="#{images.pagination.next}">Next</a>
+                    </li>
+                </ul>
+            </nav>
+
+            <div class="text-center text-muted mt-2">
+                <span th:text="#{images.pagination.page.of}">Page</span> <span th:text="${images.number + 1}">1</span> <span th:text="#{images.pagination.total.of}">of</span> <span th:text="${images.totalPages}">0</span>
+                | <span th:text="#{images.pagination.total.of}">Total</span>: <span th:text="${images.totalElements}">0</span> <span th:text="#{images.pagination.images}">images</span>
+            </div>
+        </div>
+
+        <div th:unless="${images != null and !images.empty}" class="alert alert-info">
+            <span th:text="#{images.no.images}">No images found.</span>
+            <a href="/images/upload" th:text="#{images.no.images.upload}">Upload some images</a>
+            <span th:text="#{images.no.images.start}">to get started!</span>
+        </div>
+    </div>
+
+    <script th:src="@{/js/bootstrap.bundle.min.js}"></script>
+
+    <div th:replace="~{fragments/footer :: footer}"></div>
+    
+</body>
+</html>

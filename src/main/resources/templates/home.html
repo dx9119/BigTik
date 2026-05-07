@@ -44,7 +44,18 @@
                 <span class="menu-icon">🎬</span>
                 <span class="menu-text" th:text="#{video.list.title}">Управление видео</span>
             </a>
-            
+
+            <div class="menu-separator"></div>
+
+            <a th:href="@{/images}" class="menu-item">
+                <span class="menu-icon">🖼️</span>
+                <span class="menu-text" th:text="#{images.gallery.title}">Галерея</span>
+            </a>
+            <a th:href="@{/images/upload}" class="menu-item">
+                <span class="menu-icon">📤</span>
+                <span class="menu-text" th:text="#{images.upload.title}">Загрузка изображений</span>
+            </a>
+
             <a th:href="@{/admin/users}" class="menu-item" th:if="${isAdmin}">
                 <span class="menu-icon">⚙️</span>
                 <span class="menu-text" th:text="#{admin.panel}">Админ-панель</span>

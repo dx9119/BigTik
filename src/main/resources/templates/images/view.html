@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${image.title != null ? image.title : #messages.msg('images.view.title')}">Image Details</title>
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body>
+
+    <div th:replace="~{fragments/header :: header}"></div>
+    
+    <div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 th:text="#{images.details.title}">Image Details</h1>
+        <div>
+            <a th:href="@{/images}" class="btn btn-secondary" th:text="#{images.details.back}">Back to Gallery</a>
+        </div>
+    </div>
+
+    <!-- Error Alert -->
+    <div th:if="${error != null}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <span th:text="${error}">Error message</span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" th:aria-label="#{images.details.close}"></button>
+    </div>
+
+    <div class="row">
+        <!-- Image Column -->
+        <div class="col-md-8">
+            <div class="card shadow">
+                <img th:src="@{/images/{id}/content(id=${image.id})}"
+                     class="card-img-top"
+                     th:alt="${image.title != null ? image.title : #messages.msg('images.grid.untitled')}"
+                     style="max-height: 600px; object-fit: contain;">
+                <div class="card-body">
+                    <h5 class="card-title" th:text="${image.title != null ? image.title : #messages.msg('images.grid.untitled')}">Title</h5>
+                    <p class="card-text">
+                        <strong th:text="#{images.details.uploaded.by} + ':'">Uploaded by:</strong> <span th:text="${image.ownerUsername}">owner</span><br>
+                        <strong th:text="#{images.details.uploaded.at} + ':'">Uploaded at:</strong> <span th:text="${#temporals.format(image.uploadedAt, 'yyyy-MM-dd HH:mm:ss')}">date</span><br>
+                        <strong th:text="#{images.details.file.size} + ':'">File size:</strong> <span th:text="${image.fileSize != null ? image.fileSize + ' ' + #messages.msg('images.details.bytes') : 'N/A'}">size</span><br>
+                        <strong th:text="#{images.details.content.type} + ':'">Content type:</strong> <span th:text="${image.contentType != null ? image.contentType : 'N/A'}">type</span>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tags and Actions Column -->
+        <div class="col-md-4">
+            <!-- Tags List -->
+            <div class="card shadow mb-3">
+                <div class="card-header py-2">
+                    <h6 class="mb-0" th:text="#{images.details.tags.header}">Tags</h6>
+                </div>
+                <div class="card-body py-2">
+                    <div th:if="${image.tags != null and !image.tags.isEmpty()}" class="d-flex flex-wrap gap-1">
+                        <div th:each="tag : ${image.tags}" class="d-flex align-items-center">
+                            <span class="badge bg-info" th:text="${tag}">tag</span>
+                            <form th:action="@{/images/{id}/tags/remove(id=${image.id})}"
+                                  method="post" class="ms-1">
+                                <input type="hidden" name="tag" th:value="${tag}">
+                                <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-1"
+                                        th:if="${currentUser != null and currentUser == image.ownerUsername}"
+                                        th:text="#{images.details.remove.tag.button}">
+                                    ×
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    <div th:unless="${image.tags != null and !image.tags.isEmpty()}" class="text-muted" th:text="#{images.details.tags.none}">
+                        No tags yet
+                    </div>
+                </div>
+            </div>
+
+            <!-- Add New Tag -->
+            <div class="card shadow mb-2" th:if="${currentUser != null and currentUser == image.ownerUsername}">
+                <div class="card-header py-2">
+                    <h6 class="mb-0" th:text="#{images.details.add.tag.header}">Add New Tag</h6>
+                </div>
+                <div class="card-body py-2">
+                    <form th:action="@{/images/{id}/tags/add(id=${image.id})}" method="post" class="d-flex gap-2">
+                        <input type="text" name="tag" class="form-control form-control-sm" th:placeholder="#{images.details.add.tag.placeholder}" required>
+                        <button type="submit" class="btn btn-sm btn-primary" th:text="#{images.details.add.tag.button}">Add</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Delete Image -->
+            <div class="card shadow border-danger" th:if="${currentUser != null and currentUser == image.ownerUsername}">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0" th:text="#{images.details.danger.zone}">Danger Zone</h5>
+                </div>
+                <div class="card-body">
+                    <form th:action="@{/images/{id}/delete(id=${image.id})}" method="post"
+                          onsubmit="return confirm(/*[[#{images.delete.confirm}]]*/ 'Are you sure?');">
+                        <button type="submit" class="btn btn-danger w-100" th:text="#{images.details.delete.button}">Delete Image</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Information for non-owners -->
+            <div class="alert alert-info" th:unless="${currentUser != null and currentUser == image.ownerUsername}">
+                <i class="bi bi-info-circle"></i> <span th:text="#{images.details.info.nonowner}">Only the image owner can manage tags and delete this image.</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script th:src="@{/js/bootstrap.bundle.min.js}"></script>
+
+    <div th:replace="~{fragments/footer :: footer}"></div>
+    
+</body>
+</html>
